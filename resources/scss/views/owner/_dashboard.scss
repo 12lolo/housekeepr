@@ -1,0 +1,53 @@
+// ================================
+// Owner Dashboard View
+// ================================
+
+.owner-dashboard {
+  .urgent-alert {
+    margin-bottom: spacing(8);
+  }
+
+  .compact-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+
+    svg {
+      width: 14px;
+      height: 14px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: spacing(1);
+    }
+  }
+
+  .resolve-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.8125rem;
+  }
+}
+
+.today-tasks-widget,
+.urgent-issues-widget {
+  margin-top: spacing(8);
+}
+
+.quick-actions-section {
+  margin-top: spacing(8);
+
+  .section-title {
+    margin-bottom: spacing(4);
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $neu-light-text;
+
+    @media (prefers-color-scheme: dark) {
+      color: $neu-dark-text;
+    }
+  }
+
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: spacing(4);
+  }
+}

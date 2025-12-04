@@ -1,0 +1,139 @@
+// ================================
+// FUNCTIONS
+// ================================
+
+// Get spacing value
+// --------------------------------
+@function spacing($key) {
+  @if map-has-key($spacers, $key) {
+    @return map-get($spacers, $key);
+  }
+
+  @warn "Unknown spacing key: #{$key}.";
+  @return null;
+}
+
+// Get breakpoint value
+// --------------------------------
+@function breakpoint($key) {
+  @if map-has-key($breakpoints, $key) {
+    @return map-get($breakpoints, $key);
+  }
+
+  @warn "Unknown breakpoint key: #{$key}.";
+  @return null;
+}
+
+// Convert px to rem
+// --------------------------------
+@function rem($pixels, $base: 16) {
+  @return calc($pixels / $base) * 1rem;
+}
+
+// Color manipulation
+// --------------------------------
+@function tint($color, $percentage) {
+  @return mix(white, $color, $percentage);
+}
+
+@function shade($color, $percentage) {
+  @return mix(black, $color, $percentage);
+}
+
+// Get color with opacity
+// --------------------------------
+@function alpha($color, $opacity) {
+  @return rgba($color, $opacity);
+}
+
+// Strip unit from value
+// --------------------------------
+@function strip-unit($value) {
+  @return calc($value / ($value * 0 + 1));
+}
+
+// Calculate contrast ratio
+// --------------------------------
+@function luminance($color) {
+  $colors: (
+    'red': red($color),
+    'green': green($color),
+    'blue': blue($color)
+  );
+
+  @each $name, $value in $colors {
+    $value: calc($value / 255);
+
+    @if $value < 0.03928 {
+      $value: calc($value / 12.92);
+    } @else {
+      $value: calc((($value + 0.055) / 1.055), 2.4);
+    }
+
+    $colors: map-merge($colors, ($name: $value));
+  }
+
+  @return calc((map-get($colors, 'red') * 0.2126) + (map-get($colors, 'green') * 0.7152) + (map-get($colors, 'blue') * 0.0722));
+}
+
+@function contrast-ratio($fg, $bg) {
+  $l1: luminance($fg);
+  $l2: luminance($bg);
+
+  @if $l1 > $l2 {
+    @return calc(($l1 + 0.05) / ($l2 + 0.05));
+  } @else {
+    @return calc(($l2 + 0.05) / ($l1 + 0.05));
+  }
+}
+
+// Get contrasting text color
+// --------------------------------
+@function contrast-color($color, $light: $white, $dark: $gray-900) {
+  @if contrast-ratio($color, $light) > contrast-ratio($color, $dark) {
+    @return $light;
+  } @else {
+    @return $dark;
+  }
+}
+
+// Clamp value between min and max
+// --------------------------------
+@function clamp-value($value, $min, $max) {
+  @return max($min, min($value, $max));
+}
+
+// Get z-index from layer name
+// --------------------------------
+$z-layers: (
+  'dropdown': $z-index-dropdown,
+  'sticky': $z-index-sticky,
+  'fixed': $z-index-fixed,
+  'modal-backdrop': $z-index-modal-backdrop,
+  'modal': $z-index-modal,
+  'popover': $z-index-popover,
+  'tooltip': $z-index-tooltip,
+);
+
+@function z($layer) {
+  @if map-has-key($z-layers, $layer) {
+    @return map-get($z-layers, $layer);
+  }
+
+  @warn "Unknown z-index layer: #{$layer}.";
+  @return null;
+}
+
+// Fluid typography
+// --------------------------------
+@function fluid-size($min-size, $max-size, $min-vw: 375px, $max-vw: 1440px) {
+  $min-size-rem: strip-unit($min-size);
+  $max-size-rem: strip-unit($max-size);
+  $min-vw-rem: strip-unit($min-vw);
+  $max-vw-rem: strip-unit($max-vw);
+
+  $slope: calc(($max-size-rem - $min-size-rem) / ($max-vw-rem - $min-vw-rem));
+  $y-intersection: -$min-vw-rem * $slope + $min-size-rem;
+
+  @return clamp(#{$min-size}, #{$y-intersection}rem + #{$slope * 100}vw, #{$max-size});
+}

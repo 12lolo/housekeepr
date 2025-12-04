@@ -1,0 +1,207 @@
+// ================================
+// BUTTONS
+// ================================
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: spacing(2);
+  padding: spacing(3) spacing(5);
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  border-radius: $border-radius;
+  transition: $transition-base;
+  cursor: pointer;
+  user-select: none;
+
+  &:focus {
+    @include focus-ring;
+  }
+
+  // Sizes
+  &-sm {
+    padding: spacing(2) spacing(3);
+    font-size: $font-size-sm;
+  }
+
+  &-lg {
+    padding: spacing(4) spacing(6);
+    font-size: $font-size-lg;
+  }
+
+  &-xl {
+    padding: spacing(5) spacing(8);
+    font-size: $font-size-xl;
+  }
+
+  // Full width
+  &-block {
+    display: flex;
+    width: 100%;
+  }
+
+  // Variants
+  &-primary {
+    @include button-variant($primary, $white);
+  }
+
+  &-secondary {
+    @include button-variant($secondary, $white);
+  }
+
+  &-success {
+    @include button-variant($success, $white);
+  }
+
+  &-warning {
+    @include button-variant($warning, $white);
+  }
+
+  &-danger {
+    @include button-variant($danger, $white);
+  }
+
+  &-info {
+    @include button-variant($info, $white);
+  }
+
+  &-light {
+    @include button-variant($gray-100, $gray-900);
+  }
+
+  &-dark {
+    @include button-variant($gray-900, $white);
+  }
+
+  // Outline variants
+  &-outline {
+    &-primary {
+      @include button-outline($primary);
+    }
+
+    &-secondary {
+      @include button-outline($secondary);
+    }
+
+    &-success {
+      @include button-outline($success);
+    }
+
+    &-warning {
+      @include button-outline($warning);
+    }
+
+    &-danger {
+      @include button-outline($danger);
+    }
+
+    &-info {
+      @include button-outline($info);
+    }
+  }
+
+  // Ghost button
+  &-ghost {
+    background-color: transparent;
+    border: none;
+    color: $gray-700;
+
+    &:hover:not(:disabled) {
+      background-color: $gray-100;
+    }
+
+    &:active:not(:disabled) {
+      background-color: $gray-200;
+    }
+  }
+
+  // Link button
+  &-link {
+    background-color: transparent;
+    border: none;
+    color: $primary;
+    padding: 0;
+
+    &:hover:not(:disabled) {
+      text-decoration: underline;
+      color: $primary-dark;
+    }
+  }
+
+  // Icon button
+  &-icon {
+    padding: spacing(3);
+    aspect-ratio: 1;
+
+    &.btn-sm {
+      padding: spacing(2);
+    }
+
+    &.btn-lg {
+      padding: spacing(4);
+    }
+  }
+
+  // Loading state
+  &.loading {
+    position: relative;
+    color: transparent;
+    pointer-events: none;
+
+    &::after {
+      content: '';
+      @include absolute-center;
+      width: 1rem;
+      height: 1rem;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+  }
+
+  // Disabled state
+  &:disabled,
+  &.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+// Button group
+.btn-group {
+  display: inline-flex;
+  gap: spacing(2);
+
+  &-vertical {
+    flex-direction: column;
+  }
+
+  // Connected buttons
+  &-connected {
+    gap: 0;
+
+    .btn {
+      border-radius: 0;
+
+      &:first-child {
+        border-top-left-radius: $border-radius;
+        border-bottom-left-radius: $border-radius;
+      }
+
+      &:last-child {
+        border-top-right-radius: $border-radius;
+        border-bottom-right-radius: $border-radius;
+      }
+
+      &:not(:last-child) {
+        border-right: none;
+      }
+    }
+  }
+}

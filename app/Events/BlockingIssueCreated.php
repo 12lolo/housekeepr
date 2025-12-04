@@ -1,0 +1,20 @@
+<?php
+
+namespace App\Events;
+
+use App\Models\Issue;
+use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+
+class BlockingIssueCreated
+{
+    use Dispatchable, InteractsWithSockets, SerializesModels;
+
+    public $issue;
+
+    public function __construct(Issue $issue)
+    {
+        $this->issue = $issue;
+    }
+}

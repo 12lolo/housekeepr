@@ -1,0 +1,171 @@
+// ================================
+// TYPOGRAPHY
+// ================================
+
+body {
+  font-family: $font-family-sans;
+  font-size: $font-size-base;
+  font-weight: $font-weight-normal;
+  line-height: $line-height-normal;
+  color: $gray-900;
+}
+
+// Headings
+h1, .h1 {
+  @include heading('h1');
+  margin-bottom: spacing(4);
+}
+
+h2, .h2 {
+  @include heading('h2');
+  margin-bottom: spacing(4);
+}
+
+h3, .h3 {
+  @include heading('h3');
+  margin-bottom: spacing(3);
+}
+
+h4, .h4 {
+  @include heading('h4');
+  margin-bottom: spacing(3);
+}
+
+h5, .h5 {
+  @include heading('h5');
+  margin-bottom: spacing(2);
+}
+
+h6, .h6 {
+  @include heading('h6');
+  margin-bottom: spacing(2);
+}
+
+// Paragraphs
+p {
+  margin-bottom: spacing(4);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Links
+a {
+  color: $primary;
+  text-decoration: none;
+  transition: $transition-fast;
+
+  &:hover {
+    color: $primary-dark;
+    text-decoration: underline;
+  }
+
+  &:focus {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+// Lists
+ul, ol {
+  margin-bottom: spacing(4);
+  padding-left: spacing(6);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  li {
+    margin-bottom: spacing(2);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+ul {
+  list-style-type: disc;
+}
+
+ol {
+  list-style-type: decimal;
+}
+
+// Blockquotes
+blockquote {
+  padding: spacing(4);
+  margin-bottom: spacing(4);
+  border-left: 4px solid $primary;
+  background-color: $gray-50;
+  font-style: italic;
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Code
+code {
+  font-family: $font-family-mono;
+  font-size: $font-size-sm;
+  padding: spacing(1) spacing(2);
+  background-color: $gray-100;
+  border-radius: $border-radius-sm;
+  color: $danger;
+}
+
+pre {
+  font-family: $font-family-mono;
+  font-size: $font-size-sm;
+  padding: spacing(4);
+  margin-bottom: spacing(4);
+  background-color: $gray-900;
+  color: $gray-100;
+  border-radius: $border-radius;
+  overflow-x: auto;
+
+  code {
+    padding: 0;
+    background-color: transparent;
+    color: inherit;
+  }
+}
+
+// Utility text classes
+.text {
+  &-xs { font-size: $font-size-xs; }
+  &-sm { font-size: $font-size-sm; }
+  &-base { font-size: $font-size-base; }
+  &-lg { font-size: $font-size-lg; }
+  &-xl { font-size: $font-size-xl; }
+  &-2xl { font-size: $font-size-2xl; }
+  &-3xl { font-size: $font-size-3xl; }
+
+  &-light { font-weight: $font-weight-light; }
+  &-normal { font-weight: $font-weight-normal; }
+  &-medium { font-weight: $font-weight-medium; }
+  &-semibold { font-weight: $font-weight-semibold; }
+  &-bold { font-weight: $font-weight-bold; }
+
+  &-left { text-align: left; }
+  &-center { text-align: center; }
+  &-right { text-align: right; }
+
+  &-primary { color: $primary; }
+  &-secondary { color: $secondary; }
+  &-success { color: $success; }
+  &-warning { color: $warning; }
+  &-danger { color: $danger; }
+  &-info { color: $info; }
+  &-muted { color: $gray-500; }
+
+  &-truncate {
+    @include truncate-text(1);
+  }
+
+  &-uppercase { text-transform: uppercase; }
+  &-lowercase { text-transform: lowercase; }
+  &-capitalize { text-transform: capitalize; }
+}

@@ -1,0 +1,22 @@
+// ================================
+// Owner Cleaners Views
+// ================================
+
+.cleaners-list {
+  // List view styles
+}
+
+.cleaner-detail {
+  // Detail view styles
+
+  .performance-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: spacing(6);
+    margin-top: spacing(6);
+  }
+}
+
+.cleaner-form {
+  // Create/edit form styles
+}

@@ -1,0 +1,22 @@
+// ================================
+// Admin Owners Views
+// ================================
+
+// Owner list page
+.owners-list {
+  // List-specific styles
+}
+
+// Owner detail page
+.owner-detail {
+  .hotel-section,
+  .rooms-section,
+  .cleaners-section {
+    margin-top: spacing(6);
+  }
+}
+
+// Owner form (create/edit)
+.owner-form {
+  // Form-specific styles
+}

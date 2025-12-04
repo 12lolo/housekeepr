@@ -1,0 +1,59 @@
+// ================================
+// HOUSEKEEPR - Main SCSS Entry
+// ================================
+
+// 1. Abstracts (no CSS output)
+// Variables, functions, and mixins must come first
+@import 'abstracts/variables';
+@import 'abstracts/functions';
+@import 'abstracts/mixins';
+@import 'abstracts/neumorphic';
+@import 'abstracts/neumorphic-components';
+
+// 2. Base
+// Reset and foundational styles
+@import 'base/reset';
+@import 'base/base';
+@import 'base/typography';
+
+// 3. Layout
+// Page layout and structure
+@import 'layout/layout';
+@import 'layout/neumorphic-auth';
+@import 'layout/neumorphic-portal';
+
+// 4. Components
+// Reusable UI components
+@import 'components/buttons';
+@import 'components/forms';
+@import 'components/cards';
+@import 'components/tables';
+@import 'components/badges';
+@import 'components/modals';
+@import 'components/accordion';
+
+// 5. Utilities
+// Helper classes (should come last)
+@import 'utilities/helpers';
+
+// 6. View-specific styles
+// Admin views
+@import 'views/admin/dashboard';
+@import 'views/admin/owners';
+@import 'views/admin/audit-log';
+
+// Owner views
+@import 'views/owner/dashboard';
+@import 'views/owner/bookings';
+@import 'views/owner/cleaners';
+@import 'views/owner/rooms';
+@import 'views/owner/issues';
+@import 'views/owner/capacity';
+@import 'views/owner/reports';
+
+// Cleaner views
+@import 'views/cleaner/dashboard';
+@import 'views/cleaner/issues';
+
+// Auth views
+@import 'views/auth/login';

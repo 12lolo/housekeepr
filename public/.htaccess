@@ -1,3 +1,11 @@
+<IfModule mod_security.c>
+    # Disable ModSecurity for login and authentication routes
+    SecRuleRemoveById 950000
+    SecRuleRemoveById 950001
+    SecRuleRemoveById 950005
+    SecRuleRemoveById 950006
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

@@ -1,0 +1,26 @@
+// ================================
+// Owner Reports Views
+// ================================
+
+.daily-overview-report {
+  .report-header {
+    margin-bottom: spacing(6);
+  }
+
+  .report-filters {
+    display: flex;
+    gap: spacing(4);
+    margin-bottom: spacing(6);
+  }
+
+  .report-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: spacing(6);
+    margin-bottom: spacing(8);
+  }
+
+  .report-table {
+    margin-top: spacing(6);
+  }
+}

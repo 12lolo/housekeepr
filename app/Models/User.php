@@ -22,6 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'status',
     ];
 
     /**
@@ -45,5 +47,52 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // Relationships
+    public function hotel()
+    {
+        return $this->hasOne(Hotel::class, 'owner_id');
+    }
+
+    public function hotels()
+    {
+        return $this->hasMany(Hotel::class, 'owner_id');
+    }
+
+    public function cleaner()
+    {
+        return $this->hasOne(Cleaner::class);
+    }
+
+    public function reportedIssues()
+    {
+        return $this->hasMany(Issue::class, 'reported_by');
+    }
+
+    // Helper methods for role checking
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isOwner(): bool
+    {
+        return $this->role === 'owner';
+    }
+
+    public function isAuthedUser(): bool
+    {
+        return $this->role === 'authed-user';
+    }
+
+    public function isCleaner(): bool
+    {
+        return $this->role === 'cleaner';
+    }
+
+    public function canManageHotel(): bool
+    {
+        return in_array($this->role, ['owner', 'authed-user']);
     }
 }

@@ -1,0 +1,175 @@
+// ================================
+// CARDS
+// ================================
+
+.card {
+  @include card;
+  margin-bottom: spacing(6);
+
+  &-header {
+    padding-bottom: spacing(4);
+    border-bottom: 1px solid $gray-200;
+    margin-bottom: spacing(4);
+
+    h1, h2, h3, h4, h5, h6 {
+      margin-bottom: 0;
+    }
+
+    &-actions {
+      @include flex-between;
+      gap: spacing(4);
+    }
+  }
+
+  &-body {
+    // Default body spacing handled by card padding
+  }
+
+  &-footer {
+    padding-top: spacing(4);
+    border-top: 1px solid $gray-200;
+    margin-top: spacing(4);
+
+    &-actions {
+      @include flex-between;
+      gap: spacing(3);
+    }
+  }
+
+  &-compact {
+    padding: spacing(4);
+  }
+
+  &-spacious {
+    padding: spacing(8);
+  }
+
+  // Card variants
+  &-bordered {
+    border: 1px solid $gray-200;
+    box-shadow: none;
+  }
+
+  &-elevated {
+    box-shadow: $shadow-lg;
+  }
+
+  &-flat {
+    box-shadow: none;
+  }
+
+  // Card colors
+  &-primary {
+    border-left: 4px solid $primary;
+  }
+
+  &-success {
+    border-left: 4px solid $success;
+  }
+
+  &-warning {
+    border-left: 4px solid $warning;
+  }
+
+  &-danger {
+    border-left: 4px solid $danger;
+  }
+
+  &-info {
+    border-left: 4px solid $info;
+  }
+
+  // Hoverable card
+  &-hoverable {
+    transition: $transition-base;
+    cursor: pointer;
+
+    &:hover {
+      box-shadow: $shadow-xl;
+      transform: translateY(-2px);
+    }
+  }
+
+  // Card grid
+  &-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: spacing(6);
+
+    @include respond-to(md) {
+      gap: spacing(8);
+    }
+  }
+}
+
+// Stats card
+.stats-card {
+  @include card;
+  @include flex-between;
+  gap: spacing(4);
+
+  &-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: $border-radius-lg;
+    flex-shrink: 0;
+
+    &-primary {
+      background-color: alpha($primary, 0.1);
+      color: $primary;
+    }
+
+    &-success {
+      background-color: alpha($success, 0.1);
+      color: $success;
+    }
+
+    &-warning {
+      background-color: alpha($warning, 0.1);
+      color: $warning;
+    }
+
+    &-danger {
+      background-color: alpha($danger, 0.1);
+      color: $danger;
+    }
+
+    &-info {
+      background-color: alpha($info, 0.1);
+      color: $info;
+    }
+  }
+
+  &-content {
+    flex-grow: 1;
+  }
+
+  &-title {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $gray-600;
+    margin-bottom: spacing(1);
+  }
+
+  &-value {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: $gray-900;
+  }
+
+  &-change {
+    font-size: $font-size-sm;
+    margin-top: spacing(2);
+
+    &-positive {
+      color: $success;
+    }
+
+    &-negative {
+      color: $danger;
+    }
+  }
+}

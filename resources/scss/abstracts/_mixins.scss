@@ -1,0 +1,312 @@
+// ================================
+// MIXINS
+// ================================
+
+// Responsive Breakpoints
+// --------------------------------
+@mixin respond-to($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    @media (min-width: map-get($breakpoints, $breakpoint)) {
+      @content;
+    }
+  } @else {
+    @warn "Unknown breakpoint: #{$breakpoint}.";
+  }
+}
+
+// Max-width breakpoints
+@mixin respond-to-max($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    @media (max-width: map-get($breakpoints, $breakpoint) - 1px) {
+      @content;
+    }
+  } @else {
+    @warn "Unknown breakpoint: #{$breakpoint}.";
+  }
+}
+
+// Flexbox helpers
+// --------------------------------
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+// Typography
+// --------------------------------
+@mixin heading($size: 'base') {
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+
+  @if $size == 'h1' {
+    font-size: $font-size-4xl;
+    @include respond-to(md) {
+      font-size: $font-size-5xl;
+    }
+  } @else if $size == 'h2' {
+    font-size: $font-size-3xl;
+    @include respond-to(md) {
+      font-size: $font-size-4xl;
+    }
+  } @else if $size == 'h3' {
+    font-size: $font-size-2xl;
+    @include respond-to(md) {
+      font-size: $font-size-3xl;
+    }
+  } @else if $size == 'h4' {
+    font-size: $font-size-xl;
+    @include respond-to(md) {
+      font-size: $font-size-2xl;
+    }
+  } @else if $size == 'h5' {
+    font-size: $font-size-lg;
+    @include respond-to(md) {
+      font-size: $font-size-xl;
+    }
+  } @else if $size == 'h6' {
+    font-size: $font-size-base;
+    @include respond-to(md) {
+      font-size: $font-size-lg;
+    }
+  }
+}
+
+@mixin truncate-text($lines: 1) {
+  @if $lines == 1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  } @else {
+    display: -webkit-box;
+    -webkit-line-clamp: $lines;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+// Button variations
+// --------------------------------
+@mixin button-variant($bg-color, $text-color: $white, $hover-bg: null, $active-bg: null) {
+  background-color: $bg-color;
+  color: $text-color;
+  border: 1px solid $bg-color;
+
+  @if $hover-bg == null {
+    $hover-bg: darken($bg-color, 8%);
+  }
+
+  @if $active-bg == null {
+    $active-bg: darken($bg-color, 12%);
+  }
+
+  &:hover:not(:disabled) {
+    background-color: $hover-bg;
+    border-color: $hover-bg;
+  }
+
+  &:active:not(:disabled) {
+    background-color: $active-bg;
+    border-color: $active-bg;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@mixin button-outline($color) {
+  background-color: transparent;
+  color: $color;
+  border: 1px solid $color;
+
+  &:hover:not(:disabled) {
+    background-color: $color;
+    color: $white;
+  }
+
+  &:active:not(:disabled) {
+    background-color: darken($color, 10%);
+    border-color: darken($color, 10%);
+  }
+}
+
+// Card component
+// --------------------------------
+@mixin card($padding: map-get($spacers, 6)) {
+  background-color: $white;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow;
+  padding: $padding;
+}
+
+// Form elements
+// --------------------------------
+@mixin form-input {
+  width: 100%;
+  padding: map-get($spacers, 3) map-get($spacers, 4);
+  font-size: $font-size-base;
+  line-height: $line-height-normal;
+  color: $gray-900;
+  background-color: $white;
+  border: 1px solid $gray-300;
+  border-radius: $border-radius;
+  transition: $transition-base;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+
+  &:disabled {
+    background-color: $gray-100;
+    cursor: not-allowed;
+  }
+
+  &.error {
+    border-color: $danger;
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba($danger, 0.1);
+    }
+  }
+}
+
+@mixin form-label {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $gray-700;
+  margin-bottom: map-get($spacers, 2);
+}
+
+// Badges
+// --------------------------------
+@mixin badge($bg-color, $text-color: $white) {
+  display: inline-flex;
+  align-items: center;
+  padding: map-get($spacers, 1) map-get($spacers, 3);
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  line-height: 1;
+  background-color: $bg-color;
+  color: $text-color;
+  border-radius: $border-radius-full;
+  white-space: nowrap;
+}
+
+// Container
+// --------------------------------
+@mixin container {
+  width: 100%;
+  max-width: $container-max-width;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: $container-padding;
+  padding-right: $container-padding;
+}
+
+// Transitions & Animations
+// --------------------------------
+@mixin transition($properties...) {
+  transition-property: $properties;
+  transition-duration: 0.2s;
+  transition-timing-function: ease-in-out;
+}
+
+@mixin fade-in($duration: 0.3s) {
+  animation: fadeIn $duration ease-in-out;
+}
+
+@mixin slide-up($duration: 0.3s) {
+  animation: slideUp $duration ease-out;
+}
+
+// Positioning
+// --------------------------------
+@mixin absolute-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@mixin cover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+// Visibility
+// --------------------------------
+@mixin sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+@mixin hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// Custom scrollbar
+// --------------------------------
+@mixin custom-scrollbar($thumb-color: $gray-400, $track-color: $gray-200) {
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $track-color;
+    border-radius: $border-radius-full;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $thumb-color;
+    border-radius: $border-radius-full;
+
+    &:hover {
+      background: darken($thumb-color, 10%);
+    }
+  }
+}
+
+// Focus states
+// --------------------------------
+@mixin focus-ring($color: $primary) {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba($color, 0.1);
+  border-color: $color;
+}

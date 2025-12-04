@@ -1,0 +1,252 @@
+// ================================
+// FORMS
+// ================================
+
+.form {
+  &-group {
+    margin-bottom: spacing(5);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &-label {
+    @include form-label;
+
+    &-required {
+      &::after {
+        content: ' *';
+        color: $danger;
+      }
+    }
+  }
+
+  &-input,
+  &-textarea,
+  &-select {
+    @include form-input;
+  }
+
+  &-textarea {
+    resize: vertical;
+    min-height: 8rem;
+  }
+
+  &-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right spacing(2) center;
+    background-repeat: no-repeat;
+    background-size: 1.5rem;
+    padding-right: spacing(8);
+  }
+
+  &-help {
+    display: block;
+    margin-top: spacing(2);
+    font-size: $font-size-sm;
+    color: $gray-600;
+  }
+
+  &-error {
+    display: block;
+    margin-top: spacing(2);
+    font-size: $font-size-sm;
+    color: $danger;
+  }
+
+  &-check {
+    display: flex;
+    align-items: center;
+    gap: spacing(2);
+
+    input[type="checkbox"],
+    input[type="radio"] {
+      width: auto;
+      flex-shrink: 0;
+    }
+
+    label {
+      margin-bottom: 0;
+      cursor: pointer;
+    }
+  }
+
+  // Input with icon
+  &-input-group {
+    position: relative;
+
+    .form-input {
+      &-icon-left {
+        padding-left: spacing(10);
+      }
+
+      &-icon-right {
+        padding-right: spacing(10);
+      }
+    }
+
+    .icon {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: $gray-400;
+      pointer-events: none;
+
+      &-left {
+        left: spacing(3);
+      }
+
+      &-right {
+        right: spacing(3);
+      }
+    }
+  }
+
+  // File input
+  &-file {
+    &-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+    }
+
+    &-input {
+      position: absolute;
+      left: -9999px;
+    }
+
+    &-label {
+      @extend .btn;
+      @extend .btn-secondary;
+      margin-bottom: 0;
+      cursor: pointer;
+    }
+  }
+
+  // Range input
+  &-range {
+    width: 100%;
+    height: spacing(2);
+    background: $gray-200;
+    border-radius: $border-radius-full;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity $transition-fast;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    &::-webkit-slider-thumb {
+      appearance: none;
+      width: spacing(5);
+      height: spacing(5);
+      background: $primary;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    &::-moz-range-thumb {
+      width: spacing(5);
+      height: spacing(5);
+      background: $primary;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+  }
+}
+
+// Checkbox & Radio custom styles
+input[type="checkbox"],
+input[type="radio"] {
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid $gray-300;
+  background-color: $white;
+  cursor: pointer;
+  transition: $transition-fast;
+
+  &:checked {
+    background-color: $primary;
+    border-color: $primary;
+  }
+
+  &:focus {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+input[type="checkbox"] {
+  border-radius: $border-radius-sm;
+
+  &:checked {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+}
+
+input[type="radio"] {
+  border-radius: 50%;
+
+  &:checked {
+    background-image: radial-gradient(circle, white 40%, transparent 40%);
+  }
+}
+
+// Switch
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: spacing(3);
+
+  input[type="checkbox"] {
+    position: relative;
+    width: 3rem;
+    height: 1.75rem;
+    border-radius: $border-radius-full;
+    background-color: $gray-300;
+    transition: $transition-base;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: spacing(1);
+      transform: translateY(-50%);
+      width: 1.25rem;
+      height: 1.25rem;
+      background-color: $white;
+      border-radius: 50%;
+      transition: $transition-base;
+      box-shadow: $shadow-sm;
+    }
+
+    &:checked {
+      background-color: $primary;
+
+      &::after {
+        left: calc(100% - spacing(1) - 1.25rem);
+      }
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 3px alpha($primary, 0.1);
+    }
+  }
+
+  label {
+    margin-bottom: 0;
+    cursor: pointer;
+  }
+}

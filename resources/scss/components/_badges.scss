@@ -1,0 +1,134 @@
+// ================================
+// BADGES
+// ================================
+
+.badge {
+  @include badge($gray-600);
+
+  // Sizes
+  &-sm {
+    padding: spacing(1) spacing(2);
+    font-size: 0.6875rem; // 11px
+  }
+
+  &-lg {
+    padding: spacing(2) spacing(4);
+    font-size: $font-size-sm;
+  }
+
+  // Variants
+  &-primary {
+    @include badge($primary);
+  }
+
+  &-secondary {
+    @include badge($secondary);
+  }
+
+  &-success {
+    @include badge($success);
+  }
+
+  &-warning {
+    @include badge($warning);
+  }
+
+  &-danger {
+    @include badge($danger);
+  }
+
+  &-info {
+    @include badge($info);
+  }
+
+  // Light variants
+  &-light {
+    &-primary {
+      @include badge(alpha($primary, 0.1), $primary);
+    }
+
+    &-secondary {
+      @include badge(alpha($secondary, 0.1), $secondary);
+    }
+
+    &-success {
+      @include badge(alpha($success, 0.1), $success);
+    }
+
+    &-warning {
+      @include badge(alpha($warning, 0.1), $warning-dark);
+    }
+
+    &-danger {
+      @include badge(alpha($danger, 0.1), $danger);
+    }
+
+    &-info {
+      @include badge(alpha($info, 0.1), $info-dark);
+    }
+  }
+
+  // Status badges for HouseKeepr
+  &-status {
+    &-pending {
+      @include badge($status-pending, $white);
+    }
+
+    &-in-progress {
+      @include badge($status-in-progress, $white);
+    }
+
+    &-completed {
+      @include badge($status-completed, $white);
+    }
+
+    &-active {
+      @include badge($status-active, $white);
+    }
+
+    &-deactivated {
+      @include badge($status-deactivated, $white);
+    }
+  }
+
+  // Impact badges for issues
+  &-impact {
+    &-geen-haast {
+      @include badge($impact-geen-haast, $white);
+    }
+
+    &-graag-snel {
+      @include badge($impact-graag-snel, $white);
+    }
+
+    &-kan-niet-gebruikt {
+      @include badge($impact-kan-niet-gebruikt, $white);
+    }
+  }
+
+  // Pill shape
+  &-pill {
+    border-radius: $border-radius-full;
+  }
+
+  // Dot badge (for notifications)
+  &-dot {
+    width: spacing(2);
+    height: spacing(2);
+    padding: 0;
+    border-radius: 50%;
+    display: inline-block;
+
+    &-lg {
+      width: spacing(3);
+      height: spacing(3);
+    }
+  }
+}
+
+// Badge group
+.badge-group {
+  display: inline-flex;
+  gap: spacing(2);
+  flex-wrap: wrap;
+}

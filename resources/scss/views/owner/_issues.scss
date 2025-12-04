@@ -1,0 +1,72 @@
+// ================================
+// Owner Issues Views
+// ================================
+
+.issues-list {
+  // List view styles
+
+  .issue-card {
+    margin-bottom: spacing(4);
+
+    &.urgent {
+      border-left: 4px solid $danger;
+    }
+  }
+}
+
+.issue-detail {
+  // Detail view styles
+
+  .issue-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: spacing(6);
+  }
+
+  .issue-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: spacing(4);
+    margin-bottom: spacing(6);
+  }
+
+  .issue-description {
+    margin-bottom: spacing(6);
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    white-space: pre-wrap;
+  }
+
+  .issue-photo-wrapper {
+    padding: spacing(4);
+    background: var(--bg-secondary);
+    border-radius: 12px;
+  }
+
+  .issue-photo {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+
+  .notes-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: spacing(2);
+  }
+}
+
+.issues-list {
+  .note-truncate {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.issue-form {
+  // Create form styles
+}

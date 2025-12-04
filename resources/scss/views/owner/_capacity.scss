@@ -1,0 +1,20 @@
+// ================================
+// Owner Capacity Planning View
+// ================================
+
+.capacity-planning {
+  .date-selector {
+    margin-bottom: spacing(6);
+  }
+
+  .capacity-calendar {
+    margin-top: spacing(6);
+  }
+
+  .capacity-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: spacing(6);
+    margin-bottom: spacing(8);
+  }
+}

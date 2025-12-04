@@ -1,0 +1,43 @@
+// ================================
+// Admin Audit Log View
+// ================================
+
+.audit-log-filters {
+  margin-bottom: spacing(6);
+
+  .filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: spacing(4);
+    margin-bottom: spacing(4);
+
+    .neu-form-group {
+      margin-bottom: 0;
+    }
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: spacing(3);
+  }
+}
+
+.audit-log-table {
+  .timestamp-col {
+    white-space: nowrap;
+  }
+
+  .user-col {
+    font-weight: 600;
+  }
+
+  .description-col {
+    max-width: 500px;
+  }
+
+  .subject-info {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-top: spacing(1);
+  }
+}

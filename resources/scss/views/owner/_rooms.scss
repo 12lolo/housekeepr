@@ -1,0 +1,21 @@
+// ================================
+// Owner Rooms Views
+// ================================
+
+.rooms-list {
+  // List view styles
+}
+
+.room-detail {
+  // Detail view styles
+}
+
+.room-form {
+  // Create/edit form styles
+
+  .room-type-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: spacing(4);
+  }
+}

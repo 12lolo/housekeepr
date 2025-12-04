@@ -1,0 +1,313 @@
+// ================================
+// Neumorphic Authentication Layout
+// ================================
+
+// Main authentication wrapper
+.neu-auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $neu-light-bg;
+  padding: 2rem 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  // Dark mode
+  @media (prefers-color-scheme: dark) {
+    background: $neu-dark-bg;
+    color: $neu-dark-text;
+  }
+}
+
+// Logo/branding area
+.neu-auth-logo {
+  text-align: center;
+  margin-bottom: 3rem;
+
+  a {
+    font-size: 2rem;
+    font-weight: 700;
+    color: $neu-light-primary;
+    text-decoration: none;
+    letter-spacing: -0.5px;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: darken($neu-light-primary, 10%);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      color: $neu-dark-primary;
+
+      &:hover {
+        color: lighten($neu-dark-primary, 10%);
+      }
+    }
+  }
+}
+
+// Authentication card
+.neu-auth-card {
+  @include neu-card($neu-light-bg);
+  width: 100%;
+  max-width: 420px;
+  padding: 2.5rem;
+
+  @media (prefers-color-scheme: dark) {
+    @include neu-dark-card();
+  }
+
+  @media (max-width: 480px) {
+    padding: 2rem 1.5rem;
+  }
+}
+
+// Form elements
+.neu-form-group {
+  margin-bottom: 1.5rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $neu-light-text;
+    letter-spacing: 0.3px;
+
+    @media (prefers-color-scheme: dark) {
+      color: $neu-dark-text;
+    }
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    @include neu-input($neu-light-bg);
+    width: 100%;
+
+    @media (prefers-color-scheme: dark) {
+      @include neu-dark-input();
+    }
+  }
+
+  .error {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: $neu-light-danger;
+
+    @media (prefers-color-scheme: dark) {
+      color: $neu-dark-danger;
+    }
+  }
+}
+
+// Checkbox (Remember me)
+.neu-checkbox {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+
+  input[type="checkbox"] {
+    appearance: none;
+    @include neu-sunken($neu-distance-sm * 0.5, $neu-blur-sm * 0.7, $neu-light-bg);
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+
+    &:checked {
+      background: $neu-light-primary;
+      box-shadow:
+        inset #{$neu-distance-sm * 0.5} #{$neu-distance-sm * 0.5} #{$neu-blur-sm * 0.7} darken($neu-light-primary, 15%),
+        inset #{-$neu-distance-sm * 0.5} #{-$neu-distance-sm * 0.5} #{$neu-blur-sm * 0.7} lighten($neu-light-primary, 10%);
+
+      &::after {
+        content: '';
+        position: absolute;
+        left: 6px;
+        top: 2px;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      @include neu-sunken($neu-distance-sm * 0.5, $neu-blur-sm * 0.7, $neu-dark-bg);
+
+      &:checked {
+        background: $neu-dark-primary;
+        box-shadow:
+          inset #{$neu-distance-sm * 0.5} #{$neu-distance-sm * 0.5} #{$neu-blur-sm * 0.7} darken($neu-dark-primary, 15%),
+          inset #{-$neu-distance-sm * 0.5} #{-$neu-distance-sm * 0.5} #{$neu-blur-sm * 0.7} lighten($neu-dark-primary, 10%);
+      }
+    }
+  }
+
+  label {
+    margin-left: 0.75rem;
+    font-size: 0.875rem;
+    color: $neu-light-text-muted;
+    cursor: pointer;
+
+    @media (prefers-color-scheme: dark) {
+      color: $neu-dark-text-muted;
+    }
+  }
+}
+
+// Button styles
+.neu-button {
+  @include neu-button-filled($neu-light-primary);
+  width: 100%;
+  text-align: center;
+  font-size: 0.9375rem;
+  margin-top: 1rem;
+
+  @media (prefers-color-scheme: dark) {
+    @include neu-button-filled($neu-dark-primary);
+  }
+}
+
+.neu-button-secondary {
+  @include neu-button($neu-light-bg, $neu-light-text);
+  width: 100%;
+  text-align: center;
+  font-size: 0.875rem;
+
+  @media (prefers-color-scheme: dark) {
+    @include neu-dark-button($neu-dark-text);
+  }
+}
+
+// Link styles
+.neu-link {
+  color: $neu-light-primary;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: darken($neu-light-primary, 10%);
+    text-decoration: underline;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    color: $neu-dark-primary;
+
+    &:hover {
+      color: lighten($neu-dark-primary, 10%);
+    }
+  }
+}
+
+// Footer actions (forgot password, etc.)
+.neu-auth-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+// Status messages (success, error, etc.)
+.neu-status {
+  @include neu-card-flat($neu-light-bg);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  border-radius: 12px;
+
+  &.success {
+    background: lighten($neu-light-success, 35%);
+    color: darken($neu-light-success, 15%);
+    box-shadow:
+      #{$neu-distance-sm} #{$neu-distance-sm} #{$neu-blur-sm} darken($neu-light-success, 5%),
+      #{-$neu-distance-sm} #{-$neu-distance-sm} #{$neu-blur-sm} lighten($neu-light-success, 45%);
+  }
+
+  &.error {
+    background: lighten($neu-light-danger, 35%);
+    color: darken($neu-light-danger, 15%);
+    box-shadow:
+      #{$neu-distance-sm} #{$neu-distance-sm} #{$neu-blur-sm} darken($neu-light-danger, 5%),
+      #{-$neu-distance-sm} #{-$neu-distance-sm} #{$neu-blur-sm} lighten($neu-light-danger, 45%);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &.success {
+      background: darken($neu-dark-success, 25%);
+      color: lighten($neu-dark-success, 20%);
+      box-shadow:
+        #{$neu-distance-sm} #{$neu-distance-sm} #{$neu-blur-sm} darken($neu-dark-success, 35%),
+        #{-$neu-distance-sm} #{-$neu-distance-sm} #{$neu-blur-sm} darken($neu-dark-success, 15%);
+    }
+
+    &.error {
+      background: darken($neu-dark-danger, 25%);
+      color: lighten($neu-dark-danger, 20%);
+      box-shadow:
+        #{$neu-distance-sm} #{$neu-distance-sm} #{$neu-blur-sm} darken($neu-dark-danger, 35%),
+        #{-$neu-distance-sm} #{-$neu-distance-sm} #{$neu-blur-sm} darken($neu-dark-danger, 15%);
+    }
+  }
+}
+
+// Divider
+.neu-divider {
+  margin: 2rem 0;
+  text-align: center;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      darken($neu-light-bg, 8%),
+      transparent
+    );
+  }
+
+  span {
+    position: relative;
+    background: $neu-light-bg;
+    padding: 0 1rem;
+    font-size: 0.75rem;
+    color: $neu-light-text-muted;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &::before {
+      background: linear-gradient(
+        to right,
+        transparent,
+        lighten($neu-dark-bg, 8%),
+        transparent
+      );
+    }
+
+    span {
+      background: $neu-dark-bg;
+      color: $neu-dark-text-muted;
+    }
+  }
+}

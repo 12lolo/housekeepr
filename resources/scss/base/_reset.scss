@@ -1,0 +1,103 @@
+// ================================
+// MODERN CSS RESET
+// ================================
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  line-height: $line-height-normal;
+  text-rendering: optimizeSpeed;
+}
+
+// Remove default styles
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+}
+
+// Reset headings
+h1, h2, h3, h4, h5, h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+// Reset links
+a {
+  text-decoration: inherit;
+  color: inherit;
+}
+
+// Reset buttons
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+// Make images easier to work with
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+// Remove built-in form typography styles
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+// Avoid text overflows
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+// Create a root stacking context
+#root,
+#__next {
+  isolation: isolate;
+}
+
+// Remove animations for people who've turned them off
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

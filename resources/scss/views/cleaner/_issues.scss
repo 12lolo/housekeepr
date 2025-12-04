@@ -1,0 +1,21 @@
+// ================================
+// Cleaner Issues Views
+// ================================
+
+.cleaner-issues-list {
+  // List view styles
+}
+
+.cleaner-issue-detail {
+  // Detail view styles
+}
+
+.cleaner-issue-form {
+  // Create form styles
+
+  .urgency-selector {
+    display: flex;
+    gap: spacing(4);
+    margin-bottom: spacing(6);
+  }
+}

@@ -1,0 +1,338 @@
+// Neumorphic Accordion Component
+.neu-accordion-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.neu-accordion-section {
+  width: 100%;
+
+  // Reset any potential Bootstrap/default accordion styles
+  .collapse,
+  .collapsing {
+    all: unset;
+  }
+}
+
+.neu-accordion-header {
+  width: 100% !important;
+  padding: 1.25rem 1.5rem !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  border: none !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease;
+  background: $neu-light-bg !important;
+
+  // Custom shadow with less white
+  box-shadow:
+    $neu-distance $neu-distance $neu-blur darken($neu-light-bg, 8%),
+    #{-$neu-distance} #{-$neu-distance} $neu-blur lighten($neu-light-bg, 2%);
+
+  // Override any default button styles
+  text-align: left;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  outline: none;
+  text-decoration: none;
+
+  @media (prefers-color-scheme: dark) {
+    background: $neu-dark-bg !important;
+    box-shadow:
+      $neu-distance $neu-distance $neu-blur darken($neu-dark-bg, 8%),
+      #{-$neu-distance} #{-$neu-distance} $neu-blur lighten($neu-dark-bg, 2%);
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      8px 8px 16px darken($neu-light-bg, 10%),
+      -8px -8px 16px lighten($neu-light-bg, 2.5%);
+
+    @media (prefers-color-scheme: dark) {
+      box-shadow:
+        8px 8px 16px rgba(0, 0, 0, 0.4),
+        -8px -8px 16px lighten($neu-dark-bg, 3%);
+    }
+  }
+
+  &.active {
+    background: darken($neu-light-bg, 2%) !important;
+    box-shadow:
+      inset $neu-distance $neu-distance $neu-blur darken($neu-light-bg, 10%),
+      inset #{-$neu-distance} #{-$neu-distance} $neu-blur lighten($neu-light-bg, 1.5%);
+
+    @media (prefers-color-scheme: dark) {
+      background: darken($neu-dark-bg, 2%) !important;
+      box-shadow:
+        inset $neu-distance $neu-distance $neu-blur darken($neu-dark-bg, 10%),
+        inset #{-$neu-distance} #{-$neu-distance} $neu-blur lighten($neu-dark-bg, 2%);
+    }
+  }
+
+  .neu-accordion-header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $neu-light-text;
+
+    @media (prefers-color-scheme: dark) {
+      color: $neu-dark-text;
+    }
+
+    svg {
+      width: 24px;
+      height: 24px;
+      color: $neu-light-primary;
+
+      @media (prefers-color-scheme: dark) {
+        color: $neu-dark-primary;
+      }
+    }
+  }
+
+  .neu-accordion-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+    color: $neu-light-text-muted;
+
+    @media (prefers-color-scheme: dark) {
+      color: $neu-dark-text-muted;
+    }
+  }
+
+  &.active .neu-accordion-icon {
+    transform: rotate(180deg);
+  }
+}
+
+.neu-accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
+  padding: 0 1.5rem;
+  background: transparent !important;
+  border: none !important;
+
+  &.active {
+    max-height: 10000px;
+    opacity: 1;
+    padding: 1.5rem !important;
+    margin-top: 1rem;
+    background: $neu-light-bg !important;
+    border-radius: 12px;
+
+    @media (prefers-color-scheme: dark) {
+      background: $neu-dark-bg !important;
+    }
+  }
+
+  // Dashboard grid inside accordion
+  .neu-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  // Stats cards
+  .neu-stat-card {
+    @include neu-card($neu-light-bg);
+    padding: 1.5rem;
+    text-align: center;
+
+    @media (prefers-color-scheme: dark) {
+      @include neu-card($neu-dark-bg);
+    }
+
+    .stat-icon {
+      @include neu-sunken($neu-distance-sm * 0.7, $neu-blur-sm, $neu-light-bg);
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+
+      @media (prefers-color-scheme: dark) {
+        @include neu-sunken($neu-distance-sm * 0.7, $neu-blur-sm, $neu-dark-bg);
+      }
+
+      svg {
+        width: 28px;
+        height: 28px;
+        color: $neu-light-primary;
+
+        @media (prefers-color-scheme: dark) {
+          color: $neu-dark-primary;
+        }
+      }
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: $neu-light-text-muted;
+      margin-bottom: 0.5rem;
+
+      @media (prefers-color-scheme: dark) {
+        color: $neu-dark-text-muted;
+      }
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: $neu-light-primary;
+
+      @media (prefers-color-scheme: dark) {
+        color: $neu-dark-primary;
+      }
+    }
+  }
+
+  // Tables inside accordion
+  .neu-table-container {
+    @include neu-sunken;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 1rem;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead {
+      background: rgba(0, 0, 0, 0.02);
+
+      @media (prefers-color-scheme: dark) {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: $neu-light-text-muted;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+
+        @media (prefers-color-scheme: dark) {
+          color: $neu-dark-text-muted;
+        }
+      }
+    }
+
+    tbody {
+      tr {
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+
+        @media (prefers-color-scheme: dark) {
+          border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        &:hover {
+          background: rgba(0, 0, 0, 0.02);
+
+          @media (prefers-color-scheme: dark) {
+            background: rgba(255, 255, 255, 0.02);
+          }
+        }
+
+        td {
+          padding: 1rem;
+          color: $neu-light-text;
+
+          @media (prefers-color-scheme: dark) {
+            color: $neu-dark-text;
+          }
+        }
+      }
+    }
+  }
+
+  // Recent hotels list
+  .recent-hotels-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .hotel-item {
+    @include neu-card-flat;
+    padding: 1rem 1.25rem;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+
+    &:hover {
+      @include neu-raised;
+    }
+
+    .hotel-info {
+      h4 {
+        font-weight: 600;
+        color: $neu-light-text;
+        margin-bottom: 0.25rem;
+
+        @media (prefers-color-scheme: dark) {
+          color: $neu-dark-text;
+        }
+      }
+
+      p {
+        font-size: 0.875rem;
+        color: $neu-light-text-muted;
+
+        @media (prefers-color-scheme: dark) {
+          color: $neu-dark-text-muted;
+        }
+      }
+    }
+
+    .hotel-meta {
+      text-align: right;
+      font-size: 0.875rem;
+      color: $neu-light-text-muted;
+
+      @media (prefers-color-scheme: dark) {
+        color: $neu-dark-text-muted;
+      }
+    }
+  }
+
+  // Empty state
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: $neu-light-text-muted;
+
+    @media (prefers-color-scheme: dark) {
+      color: $neu-dark-text-muted;
+    }
+
+    svg {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 1rem;
+      opacity: 0.3;
+    }
+
+    p {
+      font-size: 1.125rem;
+    }
+  }
+}

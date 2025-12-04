@@ -1,0 +1,23 @@
+# Laravel on shared hosting
+Options -Indexes
+
+# Set correct MIME types for modern JavaScript
+<IfModule mod_mime.c>
+    AddType application/javascript .js
+    AddType application/json .json
+    AddType text/css .css
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Serve static assets from public directory
+    RewriteRule ^(build/.*)$ public/$1 [L]
+    RewriteRule ^(favicon\.ico)$ public/$1 [L]
+    RewriteRule ^(robots\.txt)$ public/$1 [L]
+
+    # Redirect all other requests to index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>

@@ -1,0 +1,218 @@
+// ================================
+// TABLES
+// ================================
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: $white;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow;
+
+  &-wrapper {
+    overflow-x: auto;
+    border-radius: $border-radius-lg;
+    @include custom-scrollbar;
+  }
+
+  thead {
+    background-color: $gray-50;
+    border-bottom: 2px solid $gray-200;
+
+    th {
+      padding: spacing(4) spacing(5);
+      text-align: left;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semibold;
+      color: $gray-700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+
+      &.text-center {
+        text-align: center;
+      }
+
+      &.text-right {
+        text-align: right;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid $gray-200;
+      transition: $transition-fast;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background-color: $gray-50;
+      }
+
+      &.selected {
+        background-color: alpha($primary, 0.05);
+      }
+
+      &.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+    }
+
+    td {
+      padding: spacing(4) spacing(5);
+      font-size: $font-size-sm;
+      color: $gray-900;
+
+      &.text-center {
+        text-align: center;
+      }
+
+      &.text-right {
+        text-align: right;
+      }
+
+      &.text-muted {
+        color: $gray-600;
+      }
+    }
+  }
+
+  // Compact table
+  &-compact {
+    thead th,
+    tbody td {
+      padding: spacing(2) spacing(3);
+    }
+  }
+
+  // Spacious table
+  &-spacious {
+    thead th,
+    tbody td {
+      padding: spacing(5) spacing(6);
+    }
+  }
+
+  // Striped table
+  &-striped {
+    tbody tr:nth-child(even) {
+      background-color: $gray-50;
+    }
+  }
+
+  // Bordered table
+  &-bordered {
+    thead th,
+    tbody td {
+      border: 1px solid $gray-200;
+    }
+  }
+
+  // Borderless table
+  &-borderless {
+    box-shadow: none;
+
+    thead {
+      border-bottom: none;
+    }
+
+    tbody tr {
+      border-bottom: none;
+    }
+  }
+
+  // Sortable headers
+  &-sortable {
+    th {
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      padding-right: spacing(8);
+
+      &::after {
+        content: '↕';
+        position: absolute;
+        right: spacing(3);
+        opacity: 0.3;
+        transition: $transition-fast;
+      }
+
+      &:hover::after {
+        opacity: 0.6;
+      }
+
+      &.sort-asc::after {
+        content: '↑';
+        opacity: 1;
+      }
+
+      &.sort-desc::after {
+        content: '↓';
+        opacity: 1;
+      }
+    }
+  }
+
+  // Mobile responsive
+  @include respond-to-max(md) {
+    &-responsive {
+      thead {
+        display: none;
+      }
+
+      tbody,
+      tr,
+      td {
+        display: block;
+        width: 100%;
+      }
+
+      tr {
+        margin-bottom: spacing(4);
+        border: 1px solid $gray-200;
+        border-radius: $border-radius;
+        padding: spacing(4);
+      }
+
+      td {
+        padding: spacing(2) 0;
+        text-align: right;
+        border-bottom: 1px solid $gray-100;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        &::before {
+          content: attr(data-label);
+          float: left;
+          font-weight: $font-weight-semibold;
+          color: $gray-700;
+        }
+      }
+    }
+  }
+}
+
+// Table actions
+.table-actions {
+  @include flex-row;
+  gap: spacing(2);
+  justify-content: flex-end;
+
+  .btn {
+    padding: spacing(2);
+  }
+}
+
+// Empty state
+.table-empty {
+  padding: spacing(8);
+  text-align: center;
+  color: $gray-500;
+}

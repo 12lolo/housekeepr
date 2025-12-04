@@ -1,0 +1,23 @@
+// ================================
+// Cleaner Dashboard View
+// ================================
+
+.cleaner-dashboard {
+  // Cleaner dashboard specific styles
+}
+
+.today-tasks {
+  margin-bottom: spacing(8);
+
+  .task-card {
+    margin-bottom: spacing(4);
+
+    &.completed {
+      opacity: 0.6;
+    }
+  }
+}
+
+.performance-summary {
+  margin-top: spacing(8);
+}

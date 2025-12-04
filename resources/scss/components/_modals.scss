@@ -1,0 +1,302 @@
+// ================================
+// MODALS
+// ================================
+
+.modal {
+  &-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba($black, 0.5);
+    z-index: z('modal-backdrop');
+    display: none;
+    @include fade-in;
+
+    &.show {
+      display: block;
+    }
+  }
+
+  &-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: z('modal');
+    display: none;
+    overflow-y: auto;
+    @include custom-scrollbar;
+
+    &.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: spacing(4);
+    }
+  }
+
+  &-dialog {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    @include slide-up;
+
+    &-sm {
+      max-width: 400px;
+    }
+
+    &-lg {
+      max-width: 800px;
+    }
+
+    &-xl {
+      max-width: 1140px;
+    }
+
+    &-fullscreen {
+      max-width: 100%;
+      height: 100vh;
+      margin: 0;
+
+      .modal-content {
+        height: 100%;
+        border-radius: 0;
+      }
+    }
+  }
+
+  &-content {
+    background-color: $white;
+    border-radius: $border-radius-xl;
+    box-shadow: $shadow-2xl;
+    overflow: hidden;
+  }
+
+  &-header {
+    @include flex-between;
+    gap: spacing(4);
+    padding: spacing(6);
+    border-bottom: 1px solid $gray-200;
+
+    h1, h2, h3, h4, h5, h6 {
+      margin-bottom: 0;
+    }
+  }
+
+  &-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    color: $gray-500;
+    cursor: pointer;
+    border-radius: $border-radius;
+    transition: $transition-fast;
+
+    &:hover {
+      background-color: $gray-100;
+      color: $gray-700;
+    }
+  }
+
+  &-body {
+    padding: spacing(6);
+  }
+
+  &-footer {
+    @include flex-between;
+    gap: spacing(3);
+    padding: spacing(6);
+    border-top: 1px solid $gray-200;
+  }
+}
+
+// Alerts (similar to modals but inline)
+.alert {
+  padding: spacing(4);
+  border-radius: $border-radius;
+  border: 1px solid transparent;
+  margin-bottom: spacing(4);
+
+  &-dismissible {
+    @include flex-between;
+    gap: spacing(4);
+  }
+
+  &-close {
+    @extend .modal-close;
+  }
+
+  &-primary {
+    background-color: alpha($primary, 0.1);
+    border-color: alpha($primary, 0.2);
+    color: $primary-dark;
+  }
+
+  &-success {
+    background-color: alpha($success, 0.1);
+    border-color: alpha($success, 0.2);
+    color: $success-dark;
+  }
+
+  &-warning {
+    background-color: alpha($warning, 0.1);
+    border-color: alpha($warning, 0.2);
+    color: $warning-dark;
+  }
+
+  &-danger {
+    background-color: alpha($danger, 0.1);
+    border-color: alpha($danger, 0.2);
+    color: $danger-dark;
+  }
+
+  &-info {
+    background-color: alpha($info, 0.1);
+    border-color: alpha($info, 0.2);
+    color: $info-dark;
+  }
+}
+
+// ================================
+// NEUMORPHIC MODALS
+// ================================
+
+.neu-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba($black, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: spacing(4);
+  overflow-y: auto;
+  animation: fadeIn 0.2s ease-in-out;
+
+  @media (max-width: 768px) {
+    padding: spacing(2);
+  }
+}
+
+.neu-modal {
+  @include neu-card;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.3s ease-out;
+  margin: auto;
+
+  @media (max-width: 768px) {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  &-lg {
+    max-width: 1200px;
+  }
+
+  &-sm {
+    max-width: 500px;
+  }
+
+  &-header {
+    padding: spacing(6) spacing(8);
+    border-bottom: 1px solid rgba($black, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: spacing(4);
+    flex-shrink: 0;
+
+    @media (max-width: 768px) {
+      padding: spacing(4) spacing(5);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: $neu-dark-primary;
+
+      @media (max-width: 768px) {
+        font-size: 1.25rem;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        color: $neu-dark-text;
+      }
+    }
+  }
+
+  &-close {
+    @include neu-button;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: $neu-light-text-muted;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  &-body {
+    padding: spacing(8);
+    overflow-y: auto;
+    flex: 1;
+    @include custom-scrollbar;
+
+    @media (max-width: 768px) {
+      padding: spacing(5);
+    }
+  }
+
+  &-footer {
+    padding: spacing(6) spacing(8);
+    border-top: 1px solid rgba($black, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: spacing(3);
+    flex-shrink: 0;
+
+    @media (max-width: 768px) {
+      padding: spacing(4) spacing(5);
+      flex-direction: column-reverse;
+
+      .neu-button-primary,
+      .neu-button-secondary {
+        width: 100%;
+      }
+    }
+  }
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: spacing(12);
+  color: $gray-500;
+  font-size: 1rem;
+
+  @media (prefers-color-scheme: dark) {
+    color: $gray-400;
+  }
+}

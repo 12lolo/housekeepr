@@ -1,0 +1,246 @@
+// Neumorphic Design Variables & Mixins
+// Soft UI with extruded elements and subtle shadows
+
+// ============================================
+// Color Palette (Monochromatic, Low Contrast)
+// ============================================
+
+// Light theme colors
+$neu-light-bg: #e0e5ec;
+$neu-light-surface: #e0e5ec;
+$neu-light-text: #4a5568;
+$neu-light-text-muted: #718096;
+$neu-light-primary: #667eea;
+$neu-light-success: #48bb78;
+$neu-light-warning: #ed8936;
+$neu-light-danger: #f56565;
+
+// Dark theme colors
+$neu-dark-bg: #2d3748;
+$neu-dark-surface: #2d3748;
+$neu-dark-text: #e2e8f0;
+$neu-dark-text-muted: #a0aec0;
+$neu-dark-primary: #7f9cf5;
+$neu-dark-success: #68d391;
+$neu-dark-warning: #f6ad55;
+$neu-dark-danger: #fc8181;
+
+// Shadow distances
+$neu-distance: 15px;
+$neu-distance-sm: 8px;
+$neu-distance-lg: 20px;
+
+// Blur amounts
+$neu-blur: 30px;
+$neu-blur-sm: 15px;
+$neu-blur-lg: 40px;
+
+// ============================================
+// Neumorphic Mixins
+// ============================================
+
+// Base neumorphic effect (raised/extruded)
+@mixin neu-raised($distance: $neu-distance, $blur: $neu-blur, $bg: $neu-light-bg) {
+  background: $bg;
+  box-shadow:
+    #{$distance} #{$distance} #{$blur} darken($bg, 8%),
+    #{-$distance} #{-$distance} #{$blur} lighten($bg, 5%);
+}
+
+// Flat/pressed neumorphic effect (sunken/inset)
+@mixin neu-sunken($distance: $neu-distance, $blur: $neu-blur, $bg: $neu-light-bg) {
+  background: darken($bg, 2%);
+  box-shadow:
+    inset #{$distance} #{$distance} #{$blur} darken($bg, 10%),
+    inset #{-$distance} #{-$distance} #{$blur} lighten($bg, 3%);
+}
+
+// Concave effect (like a dent in the surface)
+@mixin neu-concave($distance: $neu-distance, $blur: $neu-blur, $bg: $neu-light-bg) {
+  background: linear-gradient(145deg, darken($bg, 3%), lighten($bg, 2%));
+  box-shadow:
+    #{$distance} #{$distance} #{$blur} darken($bg, 8%),
+    #{-$distance} #{-$distance} #{$blur} lighten($bg, 5%);
+}
+
+// Convex effect (like a bubble on the surface)
+@mixin neu-convex($distance: $neu-distance, $blur: $neu-blur, $bg: $neu-light-bg) {
+  background: linear-gradient(145deg, lighten($bg, 2%), darken($bg, 3%));
+  box-shadow:
+    #{$distance} #{$distance} #{$blur} darken($bg, 8%),
+    #{-$distance} #{-$distance} #{$blur} lighten($bg, 5%);
+}
+
+// Neumorphic button (clickable element)
+@mixin neu-button($bg: $neu-light-bg, $color: $neu-light-primary) {
+  @include neu-raised($neu-distance-sm, $neu-blur-sm, $bg);
+  border: none;
+  border-radius: 15px;
+  padding: 12px 24px;
+  font-weight: 600;
+  color: $color;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    @include neu-convex($neu-distance-sm, $neu-blur-sm, $bg);
+  }
+
+  &:active,
+  &:focus {
+    @include neu-sunken($neu-distance-sm * 0.6, $neu-blur-sm * 0.8, $bg);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Neumorphic button with filled color
+@mixin neu-button-filled($bg-color: $neu-light-primary) {
+  background: $bg-color;
+  box-shadow:
+    #{$neu-distance-sm} #{$neu-distance-sm} #{$neu-blur-sm} darken($bg-color, 15%),
+    #{-$neu-distance-sm} #{-$neu-distance-sm} #{$neu-blur-sm} lighten($bg-color, 10%);
+  color: white;
+  border: none;
+  border-radius: 15px;
+  padding: 12px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: lighten($bg-color, 5%);
+  }
+
+  &:active,
+  &:focus {
+    background: darken($bg-color, 3%);
+    box-shadow:
+      inset #{$neu-distance-sm * 0.6} #{$neu-distance-sm * 0.6} #{$neu-blur-sm * 0.8} darken($bg-color, 20%),
+      inset #{-$neu-distance-sm * 0.6} #{-$neu-distance-sm * 0.6} #{$neu-blur-sm * 0.8} lighten($bg-color, 5%);
+  }
+}
+
+// Neumorphic input field
+@mixin neu-input($bg: $neu-light-bg) {
+  @include neu-sunken($neu-distance-sm * 0.7, $neu-blur-sm, $bg);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: $neu-light-text;
+  transition: all 0.3s ease;
+
+  &::placeholder {
+    color: $neu-light-text-muted;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow:
+      inset #{$neu-distance-sm * 0.7} #{$neu-distance-sm * 0.7} #{$neu-blur-sm} darken($bg, 10%),
+      inset #{-$neu-distance-sm * 0.7} #{-$neu-distance-sm * 0.7} #{$neu-blur-sm} lighten($bg, 3%),
+      0 0 0 3px rgba($neu-light-primary, 0.15);
+  }
+}
+
+// Neumorphic card
+@mixin neu-card($bg: $neu-light-bg) {
+  @include neu-raised($neu-distance, $neu-blur, $bg);
+  border-radius: 20px;
+  padding: 24px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    @include neu-convex($neu-distance, $neu-blur, $bg);
+  }
+}
+
+// Neumorphic card (flat version)
+@mixin neu-card-flat($bg: $neu-light-bg) {
+  @include neu-raised($neu-distance-sm, $neu-blur-sm, $bg);
+  border-radius: 20px;
+  padding: 24px;
+}
+
+// Neumorphic toggle/switch
+@mixin neu-toggle($bg: $neu-light-bg, $active-color: $neu-light-primary) {
+  @include neu-sunken($neu-distance-sm * 0.5, $neu-blur-sm * 0.7, $bg);
+  border-radius: 20px;
+  position: relative;
+  width: 50px;
+  height: 28px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &::after {
+    content: '';
+    @include neu-raised($neu-distance-sm * 0.4, $neu-blur-sm * 0.6, $bg);
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
+
+  &.active {
+    background: $active-color;
+    box-shadow:
+      inset #{$neu-distance-sm * 0.5} #{$neu-distance-sm * 0.5} #{$neu-blur-sm * 0.7} darken($active-color, 15%),
+      inset #{-$neu-distance-sm * 0.5} #{-$neu-distance-sm * 0.5} #{$neu-blur-sm * 0.7} lighten($active-color, 10%);
+
+    &::after {
+      left: 26px;
+      background: white;
+      box-shadow:
+        #{$neu-distance-sm * 0.4} #{$neu-distance-sm * 0.4} #{$neu-blur-sm * 0.6} rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+// Neumorphic progress bar
+@mixin neu-progress($bg: $neu-light-bg, $color: $neu-light-primary) {
+  @include neu-sunken($neu-distance-sm * 0.6, $neu-blur-sm * 0.8, $bg);
+  border-radius: 10px;
+  height: 10px;
+  overflow: hidden;
+
+  .progress-fill {
+    @include neu-raised($neu-distance-sm * 0.3, $neu-blur-sm * 0.5, $color);
+    background: $color;
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+  }
+}
+
+// Dark mode variations
+@mixin neu-dark-raised($distance: $neu-distance, $blur: $neu-blur) {
+  @include neu-raised($distance, $blur, $neu-dark-bg);
+}
+
+@mixin neu-dark-sunken($distance: $neu-distance, $blur: $neu-blur) {
+  @include neu-sunken($distance, $blur, $neu-dark-bg);
+}
+
+@mixin neu-dark-card() {
+  @include neu-card($neu-dark-bg);
+}
+
+@mixin neu-dark-button($color: $neu-dark-primary) {
+  @include neu-button($neu-dark-bg, $color);
+}
+
+@mixin neu-dark-input() {
+  @include neu-input($neu-dark-bg);
+  color: $neu-dark-text;
+
+  &::placeholder {
+    color: $neu-dark-text-muted;
+  }
+}

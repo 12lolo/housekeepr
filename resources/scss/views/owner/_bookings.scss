@@ -1,0 +1,51 @@
+// ================================
+// Owner Bookings Views
+// ================================
+
+.bookings-list {
+  // List view styles
+}
+
+.booking-detail {
+  // Detail view styles
+
+  .notes-section {
+    margin-top: spacing(6);
+
+    .notes-label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: spacing(2);
+    }
+
+    .notes-content {
+      padding: spacing(4);
+      background: var(--bg-secondary);
+      border-radius: 12px;
+    }
+  }
+
+  .room-info-large {
+    font-weight: 600;
+    font-size: 1.25rem;
+  }
+
+  .room-type-hint {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+}
+
+.booking-form {
+  // Create/edit form styles
+
+  .time-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: spacing(4);
+  }
+
+  .room-selection {
+    margin-bottom: spacing(6);
+  }
+}
