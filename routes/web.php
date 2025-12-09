@@ -46,7 +46,13 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
 });
 
-// Owner Portal
+// Owner Portal - Setup routes (no email verification required)
+Route::middleware(['auth', 'role:owner,authed-user'])->prefix('owner')->name('owner.')->group(function () {
+    Route::get('/setup/account', [\App\Http\Controllers\Owner\SetupController::class, 'showAccountSetup'])->name('setup.account');
+    Route::post('/setup/account', [\App\Http\Controllers\Owner\SetupController::class, 'storeAccountSetup'])->name('setup.account.store');
+});
+
+// Owner Portal - Main routes (email verification required after setup)
 Route::middleware(['auth', 'verified', 'role:owner,authed-user'])->prefix('owner')->name('owner.')->group(function () {
     Route::get('/dashboard', [OwnerDashboardController::class, 'accordion'])->name('dashboard');
 

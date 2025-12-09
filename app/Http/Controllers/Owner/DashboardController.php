@@ -15,6 +15,12 @@ class DashboardController extends Controller
     public function accordion()
     {
         $user = auth()->user();
+
+        // Check if user needs to complete account setup first
+        if (empty($user->name)) {
+            return redirect()->route('owner.setup.account');
+        }
+
         $hotel = $user->hotel;
 
         if (!$hotel) {

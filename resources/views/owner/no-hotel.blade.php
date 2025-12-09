@@ -72,6 +72,21 @@
                 </div>
             </div>
 
+            <!-- Progress Steps -->
+            <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 2rem; gap: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 32px; height: 32px; background: #10b981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px;">✓</div>
+                    <span style="color: #10b981; font-weight: 600;">Account</span>
+                </div>
+                <svg width="20" height="20" fill="#d1d5db" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                </svg>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 32px; height: 32px; background: #667eea; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px;">2</div>
+                    <span style="font-weight: 600; color: #667eea;">Hotel</span>
+                </div>
+            </div>
+
             <!-- Create Hotel Form -->
             <div style="background: #f9fafb; padding: 1.5rem; border-radius: 12px; border: 2px dashed #d1d5db;">
                 <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; color: #374151;">Maak je hotel aan</h3>
@@ -80,7 +95,7 @@
                     @csrf
 
                     <div class="neu-form-group">
-                        <label for="hotel_name" class="neu-label">Hotelnaam <span style="color: #e53e3e;">*</span></label>
+                        <label for="hotel_name" class="neu-label">Hotel Naam <span style="color: #e53e3e;">*</span></label>
                         <input
                             type="text"
                             id="hotel_name"

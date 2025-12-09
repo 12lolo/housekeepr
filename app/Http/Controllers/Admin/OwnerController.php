@@ -50,9 +50,9 @@ class OwnerController extends Controller
         $tempPassword = Str::random(16);
 
         // Create owner user with pending status
-        // Name will be set to email temporarily, owner changes it on first login
+        // Name will be set by owner on first login during account setup
         $owner = User::create([
-            'name' => $validated['email'], // Temporary name
+            'name' => null, // Owner sets this during account setup
             'email' => $validated['email'],
             'password' => Hash::make($tempPassword),
             'role' => 'owner',

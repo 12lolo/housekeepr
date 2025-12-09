@@ -22,9 +22,6 @@
                     <!-- Content -->
                     <tr>
                         <td style="padding: 40px 30px;">
-                            <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.6;">
-                                Beste {{ $owner->name }},
-                            </p>
 
                             <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.6;">
                                 Er is een HouseKeepr account voor u aangemaakt!
@@ -50,7 +47,7 @@
                                 </tr>
                                 <tr>
                                     <td style="font-size: 14px; color: #666666; border-top: 1px solid #e0e0e0; padding-top: 15px;">
-                                        <strong>Tijdelijk wachtwoord:</strong>
+                                        <strong>Wachtwoord:</strong>
                                     </td>
                                     <td style="font-size: 14px; color: #333333; text-align: right; border-top: 1px solid #e0e0e0; padding-top: 15px;">
                                         <code style="background-color: #ffffff; padding: 5px 10px; border-radius: 4px; border: 1px solid #e0e0e0; font-family: monospace;">{{ $tempPassword }}</code>
@@ -60,7 +57,7 @@
 
                             <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;">
                                 <p style="margin: 0; font-size: 14px; color: #856404;">
-                                    <strong>Belangrijk:</strong> Wijzig dit wachtwoord direct na uw eerste login voor de veiligheid van uw account.
+                                    <strong>Belangrijk:</strong> We raden u sterk aan om dit wachtwoord te wijzigen na uw eerste login voor de veiligheid van uw account.
                                 </p>
                             </div>
 
