@@ -22,7 +22,7 @@ class OwnerInviteMail extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(User $owner, Hotel $hotel, string $tempPassword)
+    public function __construct(User $owner, ?Hotel $hotel, string $tempPassword)
     {
         $this->owner = $owner;
         $this->hotel = $hotel;

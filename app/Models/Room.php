@@ -13,6 +13,8 @@ class Room extends Model
         'room_number',
         'room_type',
         'standard_duration',
+        'checkout_time',
+        'checkin_time',
     ];
 
     // Relationships

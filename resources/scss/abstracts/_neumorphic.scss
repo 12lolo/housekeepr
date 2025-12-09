@@ -73,9 +73,14 @@ $neu-blur-lg: 40px;
 
 // Neumorphic button (clickable element)
 @mixin neu-button($bg: $neu-light-bg, $color: $neu-light-primary) {
-  @include neu-raised($neu-distance-sm, $neu-blur-sm, $bg);
+  background: linear-gradient(145deg, lighten($bg, 2%), darken($bg, 1%));
+  box-shadow:
+    #{$neu-distance-sm} #{$neu-distance-sm} #{$neu-blur-sm} darken($bg, 10%),
+    #{-$neu-distance-sm} #{-$neu-distance-sm} #{$neu-blur-sm} lighten($bg, 4%),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.03);
   border: none;
-  border-radius: 15px;
+  border-radius: 12px;
   padding: 12px 24px;
   font-weight: 600;
   color: $color;
@@ -83,12 +88,23 @@ $neu-blur-lg: 40px;
   transition: all 0.3s ease;
 
   &:hover {
-    @include neu-convex($neu-distance-sm, $neu-blur-sm, $bg);
+    background: linear-gradient(145deg, lighten($bg, 3%), $bg);
+    box-shadow:
+      #{$neu-distance-sm * 1.2} #{$neu-distance-sm * 1.2} #{$neu-blur-sm * 1.2} darken($bg, 12%),
+      #{-$neu-distance-sm * 1.2} #{-$neu-distance-sm * 1.2} #{$neu-blur-sm * 1.2} lighten($bg, 5%),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15),
+      0 0 0 1px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
   }
 
   &:active,
   &:focus {
-    @include neu-sunken($neu-distance-sm * 0.6, $neu-blur-sm * 0.8, $bg);
+    background: linear-gradient(145deg, darken($bg, 1%), darken($bg, 3%));
+    box-shadow:
+      inset #{$neu-distance-sm * 0.6} #{$neu-distance-sm * 0.6} #{$neu-blur-sm * 0.8} darken($bg, 12%),
+      inset #{-$neu-distance-sm * 0.6} #{-$neu-distance-sm * 0.6} #{$neu-blur-sm * 0.8} lighten($bg, 2%),
+      0 0 0 1px rgba(0, 0, 0, 0.05);
+    transform: translateY(0);
   }
 
   &:disabled {
@@ -99,28 +115,39 @@ $neu-blur-lg: 40px;
 
 // Neumorphic button with filled color
 @mixin neu-button-filled($bg-color: $neu-light-primary) {
-  background: $bg-color;
+  background: linear-gradient(145deg, lighten($bg-color, 3%), darken($bg-color, 2%));
   box-shadow:
-    #{$neu-distance-sm} #{$neu-distance-sm} #{$neu-blur-sm} darken($bg-color, 15%),
-    #{-$neu-distance-sm} #{-$neu-distance-sm} #{$neu-blur-sm} lighten($bg-color, 10%);
+    #{$neu-distance-sm} #{$neu-distance-sm} #{$neu-blur-sm} darken($bg-color, 20%),
+    #{-$neu-distance-sm} #{-$neu-distance-sm} #{$neu-blur-sm} lighten($bg-color, 8%),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
   color: white;
   border: none;
-  border-radius: 15px;
+  border-radius: 12px;
   padding: 12px 24px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 
   &:hover {
-    background: lighten($bg-color, 5%);
+    background: linear-gradient(145deg, lighten($bg-color, 5%), $bg-color);
+    box-shadow:
+      #{$neu-distance-sm * 1.2} #{$neu-distance-sm * 1.2} #{$neu-blur-sm * 1.2} darken($bg-color, 22%),
+      #{-$neu-distance-sm * 1.2} #{-$neu-distance-sm * 1.2} #{$neu-blur-sm * 1.2} lighten($bg-color, 10%),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      0 0 0 1px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
   }
 
   &:active,
   &:focus {
-    background: darken($bg-color, 3%);
+    background: linear-gradient(145deg, darken($bg-color, 2%), darken($bg-color, 5%));
     box-shadow:
-      inset #{$neu-distance-sm * 0.6} #{$neu-distance-sm * 0.6} #{$neu-blur-sm * 0.8} darken($bg-color, 20%),
-      inset #{-$neu-distance-sm * 0.6} #{-$neu-distance-sm * 0.6} #{$neu-blur-sm * 0.8} lighten($bg-color, 5%);
+      inset #{$neu-distance-sm * 0.6} #{$neu-distance-sm * 0.6} #{$neu-blur-sm * 0.8} darken($bg-color, 25%),
+      inset #{-$neu-distance-sm * 0.6} #{-$neu-distance-sm * 0.6} #{$neu-blur-sm * 0.8} darken($bg-color, 5%),
+      0 0 0 1px rgba(0, 0, 0, 0.1);
+    transform: translateY(0);
   }
 }
 

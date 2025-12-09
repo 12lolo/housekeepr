@@ -1,0 +1,76 @@
+### API Testing File for Housekeepr
+### Use this with REST Client extension in VS Code or PhpStorm HTTP Client
+
+@baseUrl = http://localhost:8000/api
+@token = YOUR_TOKEN_HERE
+
+### 1. Login to get token
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "password"
+}
+
+### 2. Get current user info
+GET {{baseUrl}}/user
+Authorization: Bearer {{token}}
+
+### 3. Get all bookings (owner)
+GET {{baseUrl}}/bookings
+Authorization: Bearer {{token}}
+
+### 4. Create a booking
+POST {{baseUrl}}/bookings
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "room_id": 1,
+  "check_in_datetime": "2025-12-10 14:00:00",
+  "notes": "VIP guest"
+}
+
+### 5. Get specific booking
+GET {{baseUrl}}/bookings/1
+Authorization: Bearer {{token}}
+
+### 6. Update booking
+PUT {{baseUrl}}/bookings/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "check_in_datetime": "2025-12-10 15:00:00",
+  "notes": "Updated time"
+}
+
+### 7. Get all cleaning tasks
+GET {{baseUrl}}/cleaning-tasks
+Authorization: Bearer {{token}}
+
+### 8. Get specific cleaning task
+GET {{baseUrl}}/cleaning-tasks/1
+Authorization: Bearer {{token}}
+
+### 9. Start a cleaning task (cleaner only)
+POST {{baseUrl}}/cleaning-tasks/1/start
+Authorization: Bearer {{token}}
+
+### 10. Stop a cleaning task (cleaner only)
+POST {{baseUrl}}/cleaning-tasks/1/stop
+Authorization: Bearer {{token}}
+
+### 11. Complete a cleaning task (cleaner only)
+POST {{baseUrl}}/cleaning-tasks/1/complete
+Authorization: Bearer {{token}}
+
+### 12. Delete booking
+DELETE {{baseUrl}}/bookings/1
+Authorization: Bearer {{token}}
+
+### 13. Logout
+POST {{baseUrl}}/logout
+Authorization: Bearer {{token}}
+

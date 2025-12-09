@@ -31,12 +31,12 @@
     <div class="neu-widget">
         <div class="widget-header">
             <h2>Eigenaren Beheer</h2>
-            <a href="{{ route('admin.owners.create') }}" class="neu-button-primary">
+            <button type="button" class="neu-button-primary" id="openAddOwnerBtn" onclick="document.getElementById('addOwnerModal').classList.add('active'); document.body.style.overflow = 'hidden';">
                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" class="icon-inline">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
                 </svg>
                 Nieuwe Eigenaar
-            </a>
+            </button>
         </div>
         <div class="widget-body">
             @if($owners->count() > 0)
@@ -122,4 +122,138 @@
             @endif
         </div>
     </div>
+
+    {{-- Add Owner Modal --}}
+    <div class="neu-modal-overlay" id="addOwnerModal">
+        <div class="neu-modal">
+            <div class="neu-modal-header">
+                <h3>Nieuwe Eigenaar Uitnodigen</h3>
+                <button type="button" class="neu-modal-close" id="closeAddOwnerBtn" aria-label="Sluiten" onclick="document.getElementById('addOwnerModal').classList.remove('active'); document.body.style.overflow = '';">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="neu-modal-body">
+                <form action="{{ route('admin.owners.store') }}" method="POST" id="addOwnerForm">
+                    @csrf
+
+                    <div class="neu-form-group">
+                        <label for="name" class="neu-label">Naam Eigenaar</label>
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            class="neu-input"
+                            placeholder="Bijv. Jan Jansen"
+                            required
+                        >
+                    </div>
+
+                    <div class="neu-form-group">
+                        <label for="email" class="neu-label">Email</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            class="neu-input"
+                            placeholder="eigenaar@hotel.nl"
+                            required
+                        >
+                        <small class="neu-hint">Een uitnodigingsmail met tijdelijk wachtwoord wordt naar dit adres gestuurd.</small>
+                    </div>
+
+                    <div class="neu-form-group">
+                        <label for="hotel_name" class="neu-label">Hotelnaam</label>
+                        <input
+                            type="text"
+                            id="hotel_name"
+                            name="hotel_name"
+                            class="neu-input"
+                            placeholder="Bijv. Hotel De Gouden Leeuw"
+                            required
+                        >
+                        <small class="neu-hint">Het hotel dat aan deze eigenaar wordt gekoppeld.</small>
+                    </div>
+
+                    <div class="neu-modal-footer">
+                        <button type="button" class="neu-button-secondary" id="cancelAddOwnerBtn" onclick="document.getElementById('addOwnerModal').classList.remove('active'); document.body.style.overflow = ''; document.getElementById('addOwnerForm').reset();">Annuleren</button>
+                        <button type="submit" class="neu-button-primary">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" class="icon-inline">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Eigenaar Aanmaken & Uitnodiging Versturen
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Modal functionality
+        const modal = document.getElementById('addOwnerModal');
+        const openBtn = document.getElementById('openAddOwnerBtn');
+        const closeBtn = document.getElementById('closeAddOwnerBtn');
+        const cancelBtn = document.getElementById('cancelAddOwnerBtn');
+
+        // Debug: Check if elements exist
+        console.log('Modal elements:', {
+            modal: !!modal,
+            openBtn: !!openBtn,
+            closeBtn: !!closeBtn,
+            cancelBtn: !!cancelBtn
+        });
+
+        if (!modal || !openBtn) {
+            console.error('Modal elements not found!');
+            return;
+        }
+
+        function openModal() {
+            console.log('Opening modal...');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            console.log('Closing modal...');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            const form = document.getElementById('addOwnerForm');
+            if (form) form.reset();
+        }
+
+        openBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            openModal();
+        });
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeModal);
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', closeModal);
+        }
+
+        // Close on overlay click
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Close on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+    });
+</script>
+@endpush
+

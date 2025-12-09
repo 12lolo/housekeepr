@@ -1,4 +1,6 @@
 import './bootstrap';
+import './tour';
+import './modal-manager';
 
 import Alpine from 'alpinejs';
 

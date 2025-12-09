@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,6 +21,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register event listeners
+        Event::listen(
+            \App\Events\BookingCreated::class,
+            \App\Listeners\CreateCleaningTaskForBooking::class
+        );
+
+        Event::listen(
+            \App\Events\BookingUpdated::class,
+            \App\Listeners\CreateCleaningTaskForBooking::class
+        );
+
         // Define gates
         Gate::define('manage-hotel', function ($user) {
             return in_array($user->role, ['owner', 'authed-user']);

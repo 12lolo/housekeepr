@@ -27,7 +27,12 @@
                             </p>
 
                             <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.6;">
-                                Er is een HouseKeepr account voor u aangemaakt! U kunt nu uw hotel <strong>{{ $hotel->name }}</strong> beheren via ons platform.
+                                Er is een HouseKeepr account voor u aangemaakt!
+                                @if($hotel)
+                                    U kunt nu uw hotel <strong>{{ $hotel->name }}</strong> beheren via ons platform.
+                                @else
+                                    U kunt nu hotels beheren via ons platform.
+                                @endif
                             </p>
 
                             <p style="margin: 0 0 10px; font-size: 16px; color: #333333; line-height: 1.6;">

@@ -2,9 +2,10 @@
 // HOUSEKEEPR - Main SCSS Entry
 // ================================
 
-// 1. Abstracts (no CSS output)
-// Variables, functions, and mixins must come first
+// 1. Abstracts (Variables, Mixins, Functions)
+// Should not produce any actual CSS
 @import 'abstracts/variables';
+@import 'abstracts/dark-mode';
 @import 'abstracts/functions';
 @import 'abstracts/mixins';
 @import 'abstracts/neumorphic';
@@ -31,10 +32,12 @@
 @import 'components/badges';
 @import 'components/modals';
 @import 'components/accordion';
+@import 'components/tour';
 
 // 5. Utilities
 // Helper classes (should come last)
 @import 'utilities/helpers';
+@import 'utilities/dark-mode-overrides';
 
 // 6. View-specific styles
 // Admin views

@@ -11,32 +11,24 @@ class RoomController extends Controller
 {
     /**
      * Display a listing of rooms (UC-R1).
+     * Redirects to dashboard where rooms are shown in accordion.
      */
     public function index()
     {
         Gate::authorize('manage-hotel');
 
-        $user = auth()->user();
-        $hotel = $user->role === 'owner' ? $user->hotel : $user->cleaner->hotel;
-
-        $rooms = $hotel->rooms()
-            ->withCount(['cleaningTasks' => function ($query) {
-                $query->where('date', '>=', today());
-            }])
-            ->orderBy('room_number')
-            ->paginate(20);
-
-        return view('owner.rooms.index', compact('rooms'));
+        return redirect()->route('owner.dashboard')->with('info', 'Alle kamers worden weergegeven in het dashboard.');
     }
 
     /**
      * Show the form for creating a new room (UC-R2).
+     * Form is shown as modal in dashboard, so redirect there.
      */
     public function create()
     {
         Gate::authorize('manage-hotel');
 
-        return view('owner.rooms.create');
+        return redirect()->route('owner.dashboard')->with('info', 'Gebruik de "Nieuwe Kamer" knop in het dashboard.');
     }
 
     /**
@@ -52,6 +44,8 @@ class RoomController extends Controller
         // UC-R3: Validate unique room number within hotel
         // UC-R4: Validate room type
         // UC-R5: Validate standard duration
+        // UC-R6: Validate checkout time
+        // UC-R7: Validate checkin time
         $validated = $request->validate([
             'room_number' => [
                 'required',
@@ -65,6 +59,8 @@ class RoomController extends Controller
             ],
             'room_type' => 'nullable|string|max:100',
             'standard_duration' => 'required|integer|min:1|max:480', // Max 8 hours
+            'checkout_time' => 'required|date_format:H:i',
+            'checkin_time' => 'required|date_format:H:i',
         ]);
 
         // Create room
@@ -73,6 +69,8 @@ class RoomController extends Controller
             'room_number' => $validated['room_number'],
             'room_type' => $validated['room_type'],
             'standard_duration' => $validated['standard_duration'],
+            'checkout_time' => $validated['checkout_time'],
+            'checkin_time' => $validated['checkin_time'],
         ]);
 
         activity()
@@ -80,13 +78,23 @@ class RoomController extends Controller
             ->causedBy($user)
             ->log('Kamer aangemaakt');
 
+        // Check if AJAX request
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Kamer succesvol aangemaakt.',
+                'room' => $room
+            ]);
+        }
+
         return redirect()
-            ->route('owner.rooms.index')
+            ->route('owner.dashboard')
             ->with('success', 'Kamer succesvol aangemaakt.');
     }
 
     /**
      * Display the specified room.
+     * Redirects to dashboard where rooms are managed.
      */
     public function show(Room $room)
     {
@@ -100,24 +108,12 @@ class RoomController extends Controller
             abort(403);
         }
 
-        $room->load([
-            'cleaningTasks' => function ($query) {
-                $query->where('date', '>=', today())
-                    ->with(['cleaner.user', 'booking'])
-                    ->orderBy('date');
-            },
-            'issues' => function ($query) {
-                $query->where('status', 'open')
-                    ->with('reportedBy')
-                    ->orderBy('created_at', 'desc');
-            }
-        ]);
-
-        return view('owner.rooms.show', compact('room'));
+        return redirect()->route('owner.dashboard')->with('info', 'Kamer details worden weergegeven in het dashboard.');
     }
 
     /**
      * Show the form for editing the specified room (UC-R10).
+     * Edit form is shown as modal in dashboard.
      */
     public function edit(Room $room)
     {
@@ -131,7 +127,7 @@ class RoomController extends Controller
             abort(403);
         }
 
-        return view('owner.rooms.edit', compact('room'));
+        return redirect()->route('owner.dashboard')->with('info', 'Gebruik de bewerk knop bij de kamer in het dashboard.');
     }
 
     /**
@@ -165,6 +161,8 @@ class RoomController extends Controller
             ],
             'room_type' => 'nullable|string|max:100',
             'standard_duration' => 'required|integer|min:1|max:480',
+            'checkout_time' => 'required|date_format:H:i',
+            'checkin_time' => 'required|date_format:H:i',
         ]);
 
         $room->update($validated);
@@ -174,8 +172,17 @@ class RoomController extends Controller
             ->causedBy($user)
             ->log('Kamer bijgewerkt');
 
+        // Check if AJAX request
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Kamer bijgewerkt.',
+                'room' => $room
+            ]);
+        }
+
         return redirect()
-            ->route('owner.rooms.index')
+            ->route('owner.dashboard')
             ->with('success', 'Kamer bijgewerkt.');
     }
 
@@ -201,6 +208,12 @@ class RoomController extends Controller
             ->count();
 
         if ($activeTasks > 0) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kan kamer niet verwijderen: er zijn nog actieve taken.'
+                ], 422);
+            }
             return back()->with('error', 'Kan kamer niet verwijderen: er zijn nog actieve taken.');
         }
 
@@ -211,8 +224,16 @@ class RoomController extends Controller
 
         $room->delete();
 
+        // Check if AJAX request
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Kamer verwijderd.'
+            ]);
+        }
+
         return redirect()
-            ->route('owner.rooms.index')
+            ->route('owner.dashboard')
             ->with('success', 'Kamer verwijderd.');
     }
 }

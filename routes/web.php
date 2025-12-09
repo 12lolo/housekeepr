@@ -50,6 +50,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 Route::middleware(['auth', 'verified', 'role:owner,authed-user'])->prefix('owner')->name('owner.')->group(function () {
     Route::get('/dashboard', [OwnerDashboardController::class, 'accordion'])->name('dashboard');
 
+    // Hotels (for creating first hotel)
+    Route::post('/hotels', [\App\Http\Controllers\Owner\HotelController::class, 'store'])->name('hotels.store');
+
     // Rooms
     Route::resource('rooms', RoomController::class);
 

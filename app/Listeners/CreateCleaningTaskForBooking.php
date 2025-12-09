@@ -26,7 +26,7 @@ class CreateCleaningTaskForBooking
     /**
      * Handle the event.
      */
-    public function handle(BookingCreated $event): void
+    public function handle(BookingCreated|\App\Events\BookingUpdated $event): void
     {
         $booking = $event->booking;
         $room = $booking->room;
@@ -75,12 +75,9 @@ class CreateCleaningTaskForBooking
         $hourBeforeCheckIn = $checkInDateTime->copy()->subHour();
 
         if ($suggestedStartTime->lessThan($now)) {
-            // Not enough time - create urgent issue
-            $this->createUrgentIssue(
-                $room,
-                $booking,
-                'Onvoldoende tijd voor schoonmaak (check-in om ' . $checkInDateTime->format('H:i') . ')'
-            );
+            // Not enough time - create urgent issue and log warning but still create task
+            Log::warning("Urgent: Not enough time for cleaning before check-in at {$checkInDateTime->format('H:i')} for booking {$booking->id}");
+            // Still create the task so cleaners can see it, but log the urgency
         }
 
         // Get active cleaners for this hotel

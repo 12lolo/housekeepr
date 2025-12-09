@@ -190,7 +190,7 @@
             <div class="neu-card">
                 <div class="card-header-actions">
                     <h2 class="card-title">Alle Kamers</h2>
-                    <button class="neu-button-primary" onclick="openModal('{{ route('owner.rooms.create') }}', 'Nieuwe Kamer')">
+                    <button id="addRoomBtn" class="neu-button-primary tour-target" onclick="openModal('roomCreateModal')">
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
                         </svg>
@@ -202,10 +202,11 @@
                     <table class="neu-table">
                         <thead>
                             <tr>
-                                <th>Kamer Nummer</th>
+                                <th>Nummer</th>
                                 <th>Type</th>
-                                <th>Verdieping</th>
-                                <th>Boekingen</th>
+                                <th>Schoonmaaktijd</th>
+                                <th>Check-out</th>
+                                <th>Check-in</th>
                                 <th>Acties</th>
                             </tr>
                         </thead>
@@ -213,20 +214,40 @@
                             @forelse($rooms as $room)
                                 <tr>
                                     <td><strong>{{ $room->room_number }}</strong></td>
-                                    <td>{{ ucfirst($room->room_type) }}</td>
-                                    <td>{{ $room->floor }}</td>
-                                    <td>{{ $room->bookings_count }}</td>
+                                    <td>
+                                        @php
+                                            $typeLabels = [
+                                                'single' => 'Eenpersoons',
+                                                'double' => 'Tweepersoons',
+                                                'suite' => 'Suite',
+                                                'family' => 'Familie'
+                                            ];
+                                            echo $typeLabels[$room->room_type] ?? ucfirst($room->room_type ?? 'Onbekend');
+                                        @endphp
+                                    </td>
+                                    <td>{{ $room->standard_duration ?? 30 }} min</td>
+                                    <td>{{ $room->checkout_time ?? '11:00' }}</td>
+                                    <td>{{ $room->checkin_time ?? '15:00' }}</td>
                                     <td>
                                         <div class="action-buttons">
-                                            <button class="action-btn" aria-label="Bekijken" onclick="openModal('{{ route('owner.rooms.show', $room) }}', 'Kamer Details')">
-                                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
-                                                </svg>
-                                            </button>
-                                            <button class="action-btn" aria-label="Bewerken" onclick="openModal('{{ route('owner.rooms.edit', $room) }}', 'Bewerk Kamer')">
+                                            <button class="action-btn" aria-label="Bewerken"
+                                                    data-room-id="{{ $room->id }}"
+                                                    data-room-number="{{ $room->room_number }}"
+                                                    data-room-type="{{ $room->room_type ?? '' }}"
+                                                    data-standard-duration="{{ $room->standard_duration ?? 30 }}"
+                                                    data-checkout-time="{{ $room->checkout_time ?? '11:00' }}"
+                                                    data-checkin-time="{{ $room->checkin_time ?? '15:00' }}"
+                                                    onclick="editRoomFromButton(this)">
                                                 <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
                                                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                                                </svg>
+                                            </button>
+                                            <button class="action-btn delete-btn" aria-label="Verwijderen"
+                                                    data-room-id="{{ $room->id }}"
+                                                    data-room-number="{{ $room->room_number }}"
+                                                    onclick="confirmDeleteRoomFromButton(this)">
+                                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
                                                 </svg>
                                             </button>
                                         </div>
@@ -234,7 +255,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center">Geen kamers gevonden</td>
+                                    <td colspan="6" class="text-center">Geen kamers gevonden</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -262,7 +283,7 @@
             <div class="neu-card">
                 <div class="card-header-actions">
                     <h2 class="card-title">Alle Boekingen</h2>
-                    <button class="neu-button-primary" onclick="openModal('{{ route('owner.bookings.create') }}', 'Nieuwe Boeking')">
+                    <button id="addBookingBtn" class="neu-button-primary tour-target" onclick="openModal('bookingCreateModal')">
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
                         </svg>
@@ -296,13 +317,7 @@
                                     </td>
                                     <td>
                                         <div class="action-buttons">
-                                            <button class="action-btn" aria-label="Bekijken" onclick="openModal('{{ route('owner.bookings.show', $booking) }}', 'Boeking Details')">
-                                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
-                                                </svg>
-                                            </button>
-                                            <button class="action-btn" aria-label="Bewerken" onclick="openModal('{{ route('owner.bookings.edit', $booking) }}', 'Bewerk Boeking')">
+                                            <button class="action-btn" aria-label="Bewerken" onclick="editBooking({{ $booking->id }}, {{ $booking->room_id }}, '{{ addslashes($booking->guest_name) }}', '{{ $booking->check_in }}', '{{ $booking->check_out }}', '{{ addslashes($booking->notes ?? '') }}')">
                                                 <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
                                                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
                                                 </svg>
@@ -340,7 +355,7 @@
             <div class="neu-card">
                 <div class="card-header-actions">
                     <h2 class="card-title">Alle Schoonmakers</h2>
-                    <button class="neu-button-primary" onclick="openModal('{{ route('owner.cleaners.create') }}', 'Nieuwe Schoonmaker')">
+                    <button id="addCleanerBtn" class="neu-button-primary tour-target" onclick="openModal('cleanerCreateModal')">
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
                         </svg>
@@ -371,14 +386,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="action-buttons">
-                                            <button class="action-btn" aria-label="Bekijken" onclick="openModal('{{ route('owner.cleaners.show', $cleaner) }}', 'Schoonmaker Details')">
-                                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
-                                                </svg>
-                                            </button>
-                                        </div>
+                                        <!-- No actions for cleaners yet -->
                                     </td>
                                 </tr>
                             @empty
@@ -411,7 +419,7 @@
             <div class="neu-card">
                 <div class="card-header-actions">
                     <h2 class="card-title">Alle Problemen</h2>
-                    <button class="neu-button-primary" onclick="openModal('{{ route('owner.issues.create') }}', 'Nieuw Probleem')">
+                    <button class="neu-button-primary" onclick="openModal('issueCreateModal')">
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
                         </svg>
@@ -449,12 +457,6 @@
                                     <td>{{ $issue->created_at->format('d-m-Y H:i') }}</td>
                                     <td>
                                         <div class="action-buttons">
-                                            <button class="action-btn" aria-label="Bekijken" onclick="openModal('{{ route('owner.issues.show', $issue) }}', 'Probleem Details')">
-                                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
-                                                </svg>
-                                            </button>
                                             @if($issue->status === 'open')
                                             <form action="{{ route('owner.issues.mark-fixed', $issue) }}" method="POST" onsubmit="return handleMarkFixed(event, this)">
                                                 @csrf
@@ -540,19 +542,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="action-buttons">
-                                            <button class="action-btn" aria-label="Bekijken" onclick="openModal('{{ route('owner.cleaning-tasks.show', $task) }}', 'Schoonmaaktaak Details')">
-                                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
-                                                </svg>
-                                            </button>
-                                            <button class="action-btn" aria-label="Probleem Melden" onclick="openModal('{{ route('owner.issues.create', ['room_id' => $task->room->id]) }}', 'Probleem Melden voor Kamer {{ $task->room->room_number }}')">
-                                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                                </svg>
-                                            </button>
-                                        </div>
+                                        <!-- No actions for tasks yet -->
                                     </td>
                                 </tr>
                             @empty
@@ -568,68 +558,155 @@
     </div>
 </div>
 
-<!-- Modal Overlay -->
-<div id="globalModal" class="neu-modal-overlay" style="display: none;">
-    <div class="neu-modal">
-        <div class="neu-modal-header">
-            <h2 id="modalTitle">Modal Title</h2>
-            <button class="neu-modal-close" onclick="closeModal()">
-                <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                </svg>
-            </button>
-        </div>
-        <div class="neu-modal-body" id="modalBody">
-            <div class="loading-spinner">Loading...</div>
-        </div>
-    </div>
-</div>
-
 <script>
-// Modal functions
-function openModal(url, title) {
-    const modal = document.getElementById('globalModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalBody = document.getElementById('modalBody');
+// Fallback modal functions if modal-manager.js doesn't load
+if (typeof window.openModal !== 'function') {
+    console.warn('modal-manager.js not loaded, using fallback functions');
 
-    modalTitle.textContent = title;
-    modalBody.innerHTML = '<div class="loading-spinner">Loading...</div>';
-    modal.style.display = 'flex';
+    window.openModal = function(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            console.log('Opened modal:', modalId);
+        } else {
+            console.error('Modal not found:', modalId);
+        }
+    };
 
-    // Fetch content
-    fetch(url, {
+    window.closeModal = function(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            console.log('Closed modal:', modalId);
+        }
+    };
+}
+
+// Always define these functions (not conditional on modal-manager.js)
+
+// Wrapper function to get data from button and call editRoom
+window.editRoomFromButton = function(button) {
+    const roomId = button.getAttribute('data-room-id');
+    const roomNumber = button.getAttribute('data-room-number');
+    const roomType = button.getAttribute('data-room-type');
+    const standardDuration = button.getAttribute('data-standard-duration');
+    const checkoutTime = button.getAttribute('data-checkout-time');
+    const checkinTime = button.getAttribute('data-checkin-time');
+
+    console.log('editRoomFromButton called');
+    editRoom(roomId, roomNumber, roomType, standardDuration, checkoutTime, checkinTime);
+};
+
+window.editRoom = function(roomId, roomNumber, roomType, standardDuration, checkoutTime, checkinTime) {
+    console.log('editRoom called with:', { roomId, roomNumber, roomType, standardDuration, checkoutTime, checkinTime });
+
+    const form = document.getElementById('roomEditForm');
+    if (!form) {
+        console.error('Room edit form not found');
+        return;
+    }
+    form.action = `/owner/rooms/${roomId}`;
+
+    // Fill in the form fields
+    const roomNumberInput = document.getElementById('edit_room_number');
+    const roomTypeSelect = document.getElementById('edit_room_type');
+    const durationInput = document.getElementById('edit_standard_duration');
+    const checkoutInput = document.getElementById('edit_checkout_time');
+    const checkinInput = document.getElementById('edit_checkin_time');
+
+    if (roomNumberInput) roomNumberInput.value = roomNumber || '';
+    if (roomTypeSelect) roomTypeSelect.value = roomType || '';
+    if (durationInput) durationInput.value = standardDuration || 30;
+    if (checkoutInput) checkoutInput.value = checkoutTime || '11:00';
+    if (checkinInput) checkinInput.value = checkinTime || '15:00';
+
+    console.log('Form filled, opening modal...');
+    window.openModal('roomEditModal');
+};
+
+window.editBooking = function(bookingId, roomId, guestName, checkIn, checkOut, notes) {
+    const form = document.getElementById('bookingEditForm');
+    if (!form) {
+        console.error('Booking edit form not found');
+        return;
+    }
+    form.action = `/owner/bookings/${bookingId}`;
+
+    document.getElementById('edit_booking_room_id').value = roomId;
+    document.getElementById('edit_guest_name').value = guestName;
+    document.getElementById('edit_check_in').value = checkIn;
+    document.getElementById('edit_check_out').value = checkOut;
+    document.getElementById('edit_notes').value = notes || '';
+
+    window.openModal('bookingEditModal');
+};
+
+// Wrapper function to get data from button and call confirmDeleteRoom
+window.confirmDeleteRoomFromButton = function(button) {
+    const roomId = button.getAttribute('data-room-id');
+    const roomNumber = button.getAttribute('data-room-number');
+
+    console.log('confirmDeleteRoomFromButton called');
+    confirmDeleteRoom(roomId, roomNumber);
+};
+
+window.confirmDeleteRoom = function(roomId, roomNumber) {
+    if (confirm(`Weet je zeker dat je kamer ${roomNumber} wilt verwijderen?\n\nDit kan niet ongedaan worden gemaakt.`)) {
+        deleteRoom(roomId);
+    }
+};
+
+window.deleteRoom = function(roomId) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+    fetch(`/owner/rooms/${roomId}`, {
+        method: 'DELETE',
         headers: {
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
         }
     })
-    .then(response => response.text())
-    .then(html => {
-        // Extract body content from response
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const content = doc.querySelector('.neu-portal-main') || doc.body;
-        modalBody.innerHTML = content.innerHTML;
+    .then(response => {
+        console.log('Delete response status:', response.status);
+        console.log('Delete response headers:', response.headers);
 
-        // Handle form submissions in modal
-        const forms = modalBody.querySelectorAll('form');
-        forms.forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                handleFormSubmit(this);
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            return response.text().then(text => {
+                console.error('Expected JSON but got:', text.substring(0, 200));
+                throw new Error('Server retourneerde geen JSON. Check de server logs.');
             });
-        });
+        }
+
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw data;
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        showToast(data.message || 'Kamer verwijderd.', 'success');
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
     })
     .catch(error => {
-        modalBody.innerHTML = '<div class="neu-alert danger"><p>Error loading content. Please try again.</p></div>';
-        console.error('Error:', error);
+        console.error('Delete error:', error);
+        if (error.message) {
+            showToast(error.message, 'error', 5000);
+        } else {
+            showToast('Er is een fout opgetreden. Probeer opnieuw.', 'error', 5000);
+        }
     });
-}
+};
 
-function closeModal() {
-    const modal = document.getElementById('globalModal');
-    modal.style.display = 'none';
-}
-
+// Form submission handler
 function handleFormSubmit(form) {
     const formData = new FormData(form);
     const method = form.method || 'POST';
@@ -706,19 +783,26 @@ function handleMarkFixed(event, form) {
 
 // Close modal on overlay click
 document.addEventListener('click', function(e) {
-    if (e.target.id === 'globalModal') {
-        closeModal();
+    if (e.target.classList.contains('neu-modal-overlay') && e.target.classList.contains('active')) {
+        window.closeModal(e.target.id);
     }
 });
 
 // Close modal on ESC key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        closeModal();
+        const activeModal = document.querySelector('.neu-modal-overlay.active');
+        if (activeModal) {
+            window.closeModal(activeModal.id);
+        }
     }
 });
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Debug: Check if modal functions are available
+    console.log('openModal available:', typeof window.openModal === 'function');
+    console.log('Modal panel exists:', document.getElementById('roomCreateModal') !== null);
+
     const accordionHeaders = document.querySelectorAll('.neu-accordion-header');
     const navSectionLinks = document.querySelectorAll('.nav-section-link');
 
@@ -779,4 +863,97 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+{{-- Modal Panels --}}
+@include('owner.panels.room-create')
+@include('owner.panels.room-edit')
+@include('owner.panels.booking-create')
+@include('owner.panels.booking-edit')
+@include('owner.panels.cleaner-create')
+@include('owner.panels.issue-create')
+
+{{-- Toast Notification --}}
+<div id="toast" class="toast" style="display: none;">
+    <div class="toast-content">
+        <span id="toast-message"></span>
+    </div>
+</div>
+
+<style>
+.action-btn.delete-btn {
+    color: #ef4444;
+}
+
+.action-btn.delete-btn:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--surface-color, #fff);
+    color: var(--text-color, #000);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    animation: slideIn 0.3s ease-out;
+    min-width: 300px;
+}
+
+.toast.success {
+    background: #10b981;
+    color: white;
+}
+
+.toast.error {
+    background: #ef4444;
+    color: white;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+</style>
+
+<script>
+// Toast notification system
+function showToast(message, type = 'success', duration = 3000) {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toast-message');
+
+    toastMessage.textContent = message;
+    toast.className = 'toast ' + type;
+    toast.style.display = 'block';
+
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => {
+            toast.style.display = 'none';
+            toast.style.animation = 'slideIn 0.3s ease-out';
+        }, 300);
+    }, duration);
+}
+</script>
+
 @endsection

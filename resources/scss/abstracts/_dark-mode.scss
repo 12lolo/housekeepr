@@ -1,0 +1,98 @@
+// ================================
+// DARK MODE VARIABLES
+// ================================
+
+:root {
+  // Light mode colors (default)
+  --bg-primary: #f0f4f8;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f8fafc;
+
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-tertiary: #94a3b8;
+
+  --border-color: #e2e8f0;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+
+  // Neumorphic shadows (light mode)
+  --neu-shadow-dark: #d1d9e6;
+  --neu-shadow-light: #ffffff;
+  --neu-bg: #f0f4f8;
+
+  // Accent colors
+  --accent-primary: #667eea;
+  --accent-secondary: #764ba2;
+
+  // Status colors
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #06b6d4;
+}
+
+// Dark mode
+@media (prefers-color-scheme: dark) {
+  :root {
+    // Dark mode colors
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+
+    --border-color: #334155;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+
+    // Neumorphic shadows (dark mode)
+    --neu-shadow-dark: #0a0f1a;
+    --neu-shadow-light: #1a2332;
+    --neu-bg: #0f172a;
+
+    // Accent colors (slightly adjusted for dark mode)
+    --accent-primary: #818cf8;
+    --accent-secondary: #a78bfa;
+
+    // Status colors (adjusted for better visibility in dark mode)
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --info: #22d3ee;
+  }
+}
+
+// Force dark mode class (for manual toggle)
+body.dark-mode {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+
+  --border-color: #334155;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+
+  --neu-shadow-dark: #0a0f1a;
+  --neu-shadow-light: #1a2332;
+  --neu-bg: #0f172a;
+
+  --accent-primary: #818cf8;
+  --accent-secondary: #a78bfa;
+
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --info: #22d3ee;
+}
+
+// Apply dark mode colors to body
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+

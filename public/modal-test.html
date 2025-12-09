@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modal Test</title>
+    <style>
+        .neu-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .neu-modal-overlay.active {
+            display: flex;
+        }
+
+        .neu-modal {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Modal Test</h1>
+    <button id="openBtn">Open Modal</button>
+
+    <div class="neu-modal-overlay" id="modal">
+        <div class="neu-modal">
+            <h2>Test Modal</h2>
+            <p>This is a test modal</p>
+            <button id="closeBtn">Close</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('modal');
+            const openBtn = document.getElementById('openBtn');
+            const closeBtn = document.getElementById('closeBtn');
+
+            console.log('Elements:', { modal, openBtn, closeBtn });
+
+            openBtn.addEventListener('click', function() {
+                console.log('Opening modal');
+                modal.classList.add('active');
+            });
+
+            closeBtn.addEventListener('click', function() {
+                console.log('Closing modal');
+                modal.classList.remove('active');
+            });
+
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    console.log('Closing via overlay');
+                    modal.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

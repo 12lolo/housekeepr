@@ -176,13 +176,19 @@
   right: 0;
   bottom: 0;
   background: rgba($black, 0.5);
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   z-index: 9999;
   padding: spacing(4);
   overflow-y: auto;
-  animation: fadeIn 0.2s ease-in-out;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+
+  &.active {
+    display: flex;
+    opacity: 1;
+  }
 
   @media (max-width: 768px) {
     padding: spacing(2);

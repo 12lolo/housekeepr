@@ -36,48 +36,40 @@ class OwnerController extends Controller
     }
 
     /**
-     * Store a newly created owner and send invitation (UC-A3, UC-A4, UC-A5).
+     * Store a newly created owner and send invitation.
+     * Only email is required - owner fills in name, hotel, etc. themselves.
      */
     public function store(Request $request)
     {
-        // UC-A3: Validate unique email
-        // UC-A4: Validate hotel name
+        // Only validate email
         $validated = $request->validate([
             'email' => 'required|email|unique:users,email',
-            'hotel_name' => 'required|string|min:2|max:255',
-            'name' => 'required|string|min:2|max:255',
         ]);
 
         // Generate temporary password
         $tempPassword = Str::random(16);
 
         // Create owner user with pending status
+        // Name will be set to email temporarily, owner changes it on first login
         $owner = User::create([
-            'name' => $validated['name'],
+            'name' => $validated['email'], // Temporary name
             'email' => $validated['email'],
             'password' => Hash::make($tempPassword),
             'role' => 'owner',
             'status' => 'pending',
         ]);
 
-        // Create hotel and link to owner (UC-A6)
-        $hotel = Hotel::create([
-            'name' => $validated['hotel_name'],
-            'owner_id' => $owner->id,
-        ]);
-
         // Log activity
         activity()
             ->performedOn($owner)
             ->causedBy(auth()->user())
-            ->log('Eigenaar uitgenodigd met hotel: ' . $hotel->name);
+            ->log('Eigenaar uitgenodigd: ' . $owner->email);
 
-        // Send invitation email (UC-A5)
+        // Send invitation email
         try {
-            Mail::to($owner->email)->send(new OwnerInviteMail($owner, $hotel, $tempPassword));
+            Mail::to($owner->email)->send(new OwnerInviteMail($owner, null, $tempPassword));
         } catch (\Exception $e) {
             // Rollback if email fails
-            $hotel->delete();
             $owner->delete();
 
             if ($request->expectsJson() || $request->ajax()) {
@@ -95,14 +87,14 @@ class OwnerController extends Controller
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Eigenaar uitgenodigd. Activatielink verstuurd naar ' . $owner->email,
-                'owner' => $owner->load('hotels')
+                'message' => 'Uitnodiging verstuurd naar ' . $owner->email,
+                'owner' => $owner
             ]);
         }
 
         return redirect()
-            ->route('admin.owners.index')
-            ->with('success', 'Eigenaar uitgenodigd. Activatielink verstuurd naar ' . $owner->email);
+            ->route('admin.dashboard')
+            ->with('success', 'Uitnodiging verstuurd naar ' . $owner->email . '. De eigenaar kan nu inloggen en alle gegevens zelf invullen.');
     }
 
     /**

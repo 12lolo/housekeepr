@@ -11,6 +11,13 @@ class Hotel extends Model
     protected $fillable = [
         'name',
         'owner_id',
+        'address',
+        'street',
+        'house_number',
+        'house_number_addition',
+        'postal_code',
+        'city',
+        'country',
     ];
 
     // Relationships
