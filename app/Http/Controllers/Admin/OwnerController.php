@@ -63,6 +63,7 @@ class OwnerController extends Controller
         activity()
             ->performedOn($owner)
             ->causedBy(auth()->user())
+            ->event('created')
             ->log('Eigenaar uitgenodigd: ' . $owner->email);
 
         // Send invitation email
@@ -169,6 +170,7 @@ class OwnerController extends Controller
         activity()
             ->performedOn($owner)
             ->causedBy(auth()->user())
+            ->event('updated')
             ->log('Eigenaar bijgewerkt');
 
         if ($request->expectsJson() || $request->ajax()) {
@@ -202,6 +204,7 @@ class OwnerController extends Controller
         activity()
             ->performedOn($owner)
             ->causedBy(auth()->user())
+            ->event('updated')
             ->log('Eigenaar gedeactiveerd');
 
         return back()->with('success', 'Eigenaar gedeactiveerd. Kan niet meer inloggen.');
@@ -225,6 +228,7 @@ class OwnerController extends Controller
         activity()
             ->performedOn($owner)
             ->causedBy(auth()->user())
+            ->event('updated')
             ->log('Eigenaar geactiveerd');
 
         return back()->with('success', 'Eigenaar geactiveerd. Kan weer inloggen.');
@@ -242,12 +246,13 @@ class OwnerController extends Controller
         activity()
             ->performedOn($owner)
             ->causedBy(auth()->user())
-            ->log('Eigenaar verwijderd: ' . $owner->name);
+            ->event('deleted')
+            ->log('Eigenaar verwijderd: ' . ($owner->name ?? $owner->email));
 
         $owner->delete();
 
         return redirect()
-            ->route('admin.owners.index')
+            ->route('admin.dashboard')
             ->with('success', 'Eigenaar verwijderd.');
     }
 }

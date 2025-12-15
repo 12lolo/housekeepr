@@ -63,8 +63,10 @@
                                         <span class="neu-badge success">Actief</span>
                                     @elseif($owner->status === 'pending')
                                         <span class="neu-badge warning">Pending</span>
+                                    @elseif($owner->status === 'deactivated')
+                                        <span class="neu-badge danger">Gedeactiveerd</span>
                                     @else
-                                        <span class="neu-badge">Gedeactiveerd</span>
+                                        <span class="neu-badge">{{ ucfirst($owner->status) }}</span>
                                     @endif
                                 </td>
                                 <td>{{ $owner->created_at->format('d-m-Y') }}</td>
@@ -83,7 +85,7 @@
                                     @if($owner->status === 'active')
                                         <form action="{{ route('admin.owners.deactivate', $owner) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="action-btn danger" aria-label="Deactiveren" onclick="return confirm('Weet je zeker dat je deze eigenaar wilt deactiveren?')">
+                                            <button type="submit" class="action-btn" style="color: #f59e0b;" aria-label="Deactiveren" onclick="return confirm('Weet je zeker dat je deze eigenaar wilt deactiveren? De eigenaar kan nog inloggen en navigeren, maar kan geen wijzigingen maken.')">
                                                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
                                                 </svg>
@@ -92,13 +94,22 @@
                                     @else
                                         <form action="{{ route('admin.owners.activate', $owner) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="action-btn success" aria-label="Activeren">
+                                            <button type="submit" class="action-btn" style="color: #10b981;" aria-label="Activeren" onclick="return confirm('Weet je zeker dat je deze eigenaar wilt activeren?')">
                                                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                                 </svg>
                                             </button>
                                         </form>
                                     @endif
+                                    <form action="{{ route('admin.owners.destroy', $owner) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="action-btn danger" aria-label="Verwijderen" onclick="return confirm('Weet je zeker dat je deze eigenaar definitief wilt verwijderen? Dit kan niet ongedaan worden gemaakt!')">
+                                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                             @endforeach
@@ -139,19 +150,7 @@
                     @csrf
 
                     <div class="neu-form-group">
-                        <label for="name" class="neu-label">Naam Eigenaar</label>
-                        <input
-                            type="text"
-                            id="name"
-                            name="name"
-                            class="neu-input"
-                            placeholder="Bijv. Jan Jansen"
-                            required
-                        >
-                    </div>
-
-                    <div class="neu-form-group">
-                        <label for="email" class="neu-label">Email</label>
+                        <label for="email" class="neu-label">Email Eigenaar</label>
                         <input
                             type="email"
                             id="email"
@@ -160,20 +159,7 @@
                             placeholder="eigenaar@hotel.nl"
                             required
                         >
-                        <small class="neu-hint">Een uitnodigingsmail met tijdelijk wachtwoord wordt naar dit adres gestuurd.</small>
-                    </div>
-
-                    <div class="neu-form-group">
-                        <label for="hotel_name" class="neu-label">Hotelnaam</label>
-                        <input
-                            type="text"
-                            id="hotel_name"
-                            name="hotel_name"
-                            class="neu-input"
-                            placeholder="Bijv. Hotel De Gouden Leeuw"
-                            required
-                        >
-                        <small class="neu-hint">Het hotel dat aan deze eigenaar wordt gekoppeld.</small>
+                        <small class="neu-hint">Een uitnodigingsmail met tijdelijk wachtwoord wordt naar dit adres gestuurd. De eigenaar vult zelf zijn naam, wachtwoord en hotel in bij eerste login.</small>
                     </div>
 
                     <div class="neu-modal-footer">

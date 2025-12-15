@@ -49,6 +49,25 @@
 @endsection
 
 @section('content')
+
+{{-- Deactivated Account Banner --}}
+@if(auth()->user()->isDeactivated())
+    <div class="neu-alert danger" style="margin-bottom: 24px;">
+        <div class="alert-icon">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+            </svg>
+        </div>
+        <div class="alert-content">
+            <div class="alert-title">Account Gedeactiveerd</div>
+            <div class="alert-message">
+                Uw account is gedeactiveerd door de beheerder. U kunt het dashboard bekijken, maar geen wijzigingen maken.
+                Neem contact op met de beheerder als u denkt dat dit een vergissing is.
+            </div>
+        </div>
+    </div>
+@endif
+
 <div class="neu-accordion-container">
     <!-- Dashboard Section (Open by default) -->
     <div class="neu-accordion-section" id="section-dashboard">
@@ -207,11 +226,38 @@
                                 <th>Schoonmaaktijd</th>
                                 <th>Check-out</th>
                                 <th>Check-in</th>
+                                <th>Tijdslot</th>
                                 <th>Acties</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($rooms as $room)
+                                @php
+                                    // Bereken tijdslot tussen check-out en check-in
+                                    $checkoutTime = $room->checkout_time ?? '11:00';
+                                    $checkinTime = $room->checkin_time ?? '15:00';
+
+                                    try {
+                                        $checkout = new DateTime($checkoutTime);
+                                        $checkin = new DateTime($checkinTime);
+                                        $interval = $checkout->diff($checkin);
+
+                                        // Bereken totaal in uren en minuten
+                                        $totalMinutes = ($interval->h * 60) + $interval->i;
+                                        $hours = floor($totalMinutes / 60);
+                                        $minutes = $totalMinutes % 60;
+
+                                        if ($hours > 0 && $minutes > 0) {
+                                            $timeSlot = $hours . 'u ' . $minutes . 'min';
+                                        } elseif ($hours > 0) {
+                                            $timeSlot = $hours . ' uur';
+                                        } else {
+                                            $timeSlot = $minutes . ' min';
+                                        }
+                                    } catch (Exception $e) {
+                                        $timeSlot = '-';
+                                    }
+                                @endphp
                                 <tr>
                                     <td><strong>{{ $room->room_number }}</strong></td>
                                     <td>
@@ -226,8 +272,9 @@
                                         @endphp
                                     </td>
                                     <td>{{ $room->standard_duration ?? 30 }} min</td>
-                                    <td>{{ $room->checkout_time ?? '11:00' }}</td>
-                                    <td>{{ $room->checkin_time ?? '15:00' }}</td>
+                                    <td>{{ $checkoutTime }}</td>
+                                    <td>{{ $checkinTime }}</td>
+                                    <td><strong>{{ $timeSlot }}</strong></td>
                                     <td>
                                         <div class="action-buttons">
                                             <button class="action-btn" aria-label="Bewerken"
@@ -255,7 +302,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center">Geen kamers gevonden</td>
+                                    <td colspan="7" class="text-center">Geen kamers gevonden</td>
                                 </tr>
                             @endforelse
                         </tbody>

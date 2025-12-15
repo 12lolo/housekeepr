@@ -14,6 +14,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
+            'owner.active' => \App\Http\Middleware\EnsureOwnerIsActive::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -257,10 +257,31 @@
     justify-content: center;
     flex-shrink: 0;
     color: $neu-light-text-muted;
+    background: $neu-light-bg;
 
     svg {
       width: 24px;
       height: 24px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      background: $neu-dark-bg;
+      color: $neu-dark-text-muted;
+      box-shadow:
+        #{$neu-distance-sm} #{$neu-distance-sm} #{$neu-blur-sm} darken($neu-dark-bg, 8%),
+        #{-$neu-distance-sm} #{-$neu-distance-sm} #{$neu-blur-sm} lighten($neu-dark-bg, 3%);
+
+      &:hover {
+        box-shadow:
+          #{$neu-distance-sm * 0.8} #{$neu-distance-sm * 0.8} #{$neu-blur-sm * 0.9} darken($neu-dark-bg, 10%),
+          #{-$neu-distance-sm * 0.8} #{-$neu-distance-sm * 0.8} #{$neu-blur-sm * 0.9} lighten($neu-dark-bg, 5%);
+      }
+
+      &:active {
+        box-shadow:
+          inset #{$neu-distance-sm * 0.5} #{$neu-distance-sm * 0.5} #{$neu-blur-sm * 0.7} darken($neu-dark-bg, 12%),
+          inset #{-$neu-distance-sm * 0.5} #{-$neu-distance-sm * 0.5} #{$neu-blur-sm * 0.7} lighten($neu-dark-bg, 2%);
+      }
     }
   }
 
@@ -306,3 +327,64 @@
     color: $gray-400;
   }
 }
+
+// Form styling inside modals
+.neu-modal {
+  .neu-form-group {
+    margin-bottom: 1.5rem;
+
+    label,
+    .neu-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: $neu-light-text;
+      letter-spacing: 0.3px;
+
+      @media (prefers-color-scheme: dark) {
+        color: $neu-dark-text;
+      }
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="time"],
+    input[type="date"],
+    input[type="datetime-local"],
+    input[type="tel"],
+    input[type="url"],
+    select,
+    textarea,
+    .neu-input {
+      @include neu-input($neu-light-bg);
+      width: 100%;
+
+      @media (prefers-color-scheme: dark) {
+        @include neu-dark-input();
+      }
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .error {
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: $neu-light-danger;
+
+      @media (prefers-color-scheme: dark) {
+        color: $neu-dark-danger;
+      }
+    }
+  }
+}
+

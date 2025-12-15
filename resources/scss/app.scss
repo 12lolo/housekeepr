@@ -2,10 +2,12 @@
 // HOUSEKEEPR - Main SCSS Entry
 // ================================
 
+// Theme system (must be first)
+@import 'themes/theme-controller';
+
 // 1. Abstracts (Variables, Mixins, Functions)
 // Should not produce any actual CSS
 @import 'abstracts/variables';
-@import 'abstracts/dark-mode';
 @import 'abstracts/functions';
 @import 'abstracts/mixins';
 @import 'abstracts/neumorphic';
@@ -37,7 +39,6 @@
 // 5. Utilities
 // Helper classes (should come last)
 @import 'utilities/helpers';
-@import 'utilities/dark-mode-overrides';
 
 // 6. View-specific styles
 // Admin views

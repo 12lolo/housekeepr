@@ -34,6 +34,9 @@ class UrgentIssueMail extends Mailable
     {
         return new Envelope(
             subject: '[URGENT] HouseKeepr - Probleem met kamer ' . $this->issue->room->room_number,
+            replyTo: [
+                config('mail.from.address', 'noreply@housekeepr.nl'),
+            ],
         );
     }
 
@@ -55,5 +58,20 @@ class UrgentIssueMail extends Mailable
     public function attachments(): array
     {
         return [];
+    }
+
+    /**
+     * Get the message headers.
+     */
+    public function headers(): \Illuminate\Mail\Mailables\Headers
+    {
+        return new \Illuminate\Mail\Mailables\Headers(
+            text: [
+                'X-Mailer' => 'HouseKeepr',
+                'X-Priority' => '1',
+                'Importance' => 'High',
+                'X-MSMail-Priority' => 'High',
+            ],
+        );
     }
 }

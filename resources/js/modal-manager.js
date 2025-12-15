@@ -46,15 +46,26 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Edit room - populate form with data
-window.editRoom = function(roomId, roomNumber, type, cleaningDuration, checkoutTime, checkinTime) {
+window.editRoom = function(roomId, roomNumber, type, standardDuration, checkoutTime, checkinTime) {
     const form = document.getElementById('roomEditForm');
+    if (!form) {
+        console.error('Room edit form not found');
+        return;
+    }
+
     form.action = `/owner/rooms/${roomId}`;
 
-    document.getElementById('edit_room_number').value = roomNumber;
-    document.getElementById('edit_room_type').value = type;
-    document.getElementById('edit_cleaning_duration').value = cleaningDuration;
-    document.getElementById('edit_checkout_time').value = checkoutTime;
-    document.getElementById('edit_checkin_time').value = checkinTime;
+    const roomNumberInput = document.getElementById('edit_room_number');
+    const roomTypeSelect = document.getElementById('edit_room_type');
+    const durationInput = document.getElementById('edit_standard_duration');
+    const checkoutInput = document.getElementById('edit_checkout_time');
+    const checkinInput = document.getElementById('edit_checkin_time');
+
+    if (roomNumberInput) roomNumberInput.value = roomNumber || '';
+    if (roomTypeSelect) roomTypeSelect.value = type || '';
+    if (durationInput) durationInput.value = standardDuration || 30;
+    if (checkoutInput) checkoutInput.value = checkoutTime || '11:00';
+    if (checkinInput) checkinInput.value = checkinTime || '15:00';
 
     window.openModal('roomEditModal');
 };

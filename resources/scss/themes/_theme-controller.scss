@@ -1,0 +1,102 @@
+// TOP-LEVEL IMPORTS ONLY (modern Sass requirement)
+@use 'light-mode' as light;
+@use 'dark-mode' as dark;
+
+// Build theme maps from imported variables
+$light-theme: (
+  // Backgrounds
+  'bg-primary': light.$bg-primary,
+  'bg-secondary': light.$bg-secondary,
+  'bg-tertiary': light.$bg-tertiary,
+
+  // Text
+  'text-primary': light.$text-primary,
+  'text-secondary': light.$text-secondary,
+  'text-tertiary': light.$text-tertiary,
+  'text-muted': light.$text-muted,
+
+  // Accents
+  'accent-primary': light.$accent-primary,
+  'accent-secondary': light.$accent-secondary,
+
+  // Borders
+  'border-color': light.$border-color,
+
+  // Shadows
+  'shadow-color': light.$shadow-color,
+
+  // Status
+  'success': light.$success,
+  'warning': light.$warning,
+  'danger': light.$danger,
+  'info': light.$info,
+
+  // Neumorphic
+  'neu-shadow-light': light.$neu-shadow-light,
+  'neu-shadow-dark': light.$neu-shadow-dark,
+  'neu-bg': light.$neu-bg
+);
+
+$dark-theme: (
+  // Backgrounds
+  'bg-primary': dark.$bg-primary,
+  'bg-secondary': dark.$bg-secondary,
+  'bg-tertiary': dark.$bg-tertiary,
+
+  // Text
+  'text-primary': dark.$text-primary,
+  'text-secondary': dark.$text-secondary,
+  'text-tertiary': dark.$text-tertiary,
+  'text-muted': dark.$text-muted,
+
+  // Accents
+  'accent-primary': dark.$accent-primary,
+  'accent-secondary': dark.$accent-secondary,
+
+  // Borders
+  'border-color': dark.$border-color,
+
+  // Shadows
+  'shadow-color': dark.$shadow-color,
+
+  // Status
+  'success': dark.$success,
+  'warning': dark.$warning,
+  'danger': dark.$danger,
+  'info': dark.$info,
+
+  // Neumorphic
+  'neu-shadow-light': dark.$neu-shadow-light,
+  'neu-shadow-dark': dark.$neu-shadow-dark,
+  'neu-bg': dark.$neu-bg
+);
+
+// Mixin to emit CSS custom properties from a theme map
+// This eliminates repetition - add a token once to each map, done!
+@mixin emit-theme($theme) {
+  @each $name, $value in $theme {
+    --#{$name}: #{$value};
+  }
+}
+
+// Default: Light mode
+:root {
+  @include emit-theme($light-theme);
+}
+
+// System preference: Dark mode
+@media (prefers-color-scheme: dark) {
+  :root {
+    @include emit-theme($dark-theme);
+  }
+}
+
+// Manual overrides (placed AFTER @media for proper cascade)
+// These have higher specificity and always win over system preference
+:root[data-theme="light"] {
+  @include emit-theme($light-theme);
+}
+
+:root[data-theme="dark"] {
+  @include emit-theme($dark-theme);
+}

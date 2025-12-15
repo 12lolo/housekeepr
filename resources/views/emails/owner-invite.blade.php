@@ -22,6 +22,11 @@
                     <!-- Content -->
                     <tr>
                         <td style="padding: 40px 30px;">
+                            @if($owner->name)
+                            <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.6;">
+                                Beste {{ $owner->name }},
+                            </p>
+                            @endif
 
                             <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.6;">
                                 Er is een HouseKeepr account voor u aangemaakt!

@@ -189,7 +189,7 @@ class RoomController extends Controller
     /**
      * Remove the specified room (UC-R11).
      */
-    public function destroy(Room $room)
+    public function destroy(Request $request, Room $room)
     {
         Gate::authorize('manage-hotel');
 

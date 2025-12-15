@@ -74,6 +74,16 @@ class HousekeeprTour {
         const isNewHotel = document.body.dataset.newHotel === 'true';
         const hasRooms = parseInt(document.body.dataset.totalRooms || '0') > 0;
 
+        // Get hotel ID for hotel-specific tour completion
+        const hotelId = document.body.dataset.hotelId;
+
+        if (hotelId) {
+            const tourCompletedForHotel = localStorage.getItem(`housekeepr_tour_completed_hotel_${hotelId}`);
+            if (tourCompletedForHotel) {
+                return false; // Tour already completed for this hotel
+            }
+        }
+
         return isNewHotel || !hasRooms;
     }
 
@@ -140,7 +150,12 @@ class HousekeeprTour {
 
     skipTour() {
         this.endTour();
-        // Mark tour as completed so it doesn't show again
+        // Mark tour as completed so it doesn't show again for this hotel
+        const hotelId = document.body.dataset.hotelId;
+        if (hotelId) {
+            localStorage.setItem(`housekeepr_tour_completed_hotel_${hotelId}`, 'true');
+        }
+        // Also set global flag for backwards compatibility
         localStorage.setItem('housekeepr_tour_completed', 'true');
     }
 
@@ -276,7 +291,12 @@ class HousekeeprTour {
         // Remove badges
         document.querySelectorAll('.tour-badge').forEach(badge => badge.remove());
 
-        // Mark as completed
+        // Mark as completed for this hotel
+        const hotelId = document.body.dataset.hotelId;
+        if (hotelId) {
+            localStorage.setItem(`housekeepr_tour_completed_hotel_${hotelId}`, 'true');
+        }
+        // Also set global flag for backwards compatibility
         localStorage.setItem('housekeepr_tour_completed', 'true');
     }
 
@@ -309,8 +329,18 @@ class HousekeeprTour {
 window.housekeeprTour = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if tour was already completed
-    const tourCompleted = localStorage.getItem('housekeepr_tour_completed');
+    // Check if tour was already completed (check hotel-specific first, then global)
+    const hotelId = document.body.dataset.hotelId;
+    let tourCompleted = false;
+
+    if (hotelId) {
+        tourCompleted = localStorage.getItem(`housekeepr_tour_completed_hotel_${hotelId}`) === 'true';
+    }
+
+    // Fallback to global check for backwards compatibility
+    if (!tourCompleted) {
+        tourCompleted = localStorage.getItem('housekeepr_tour_completed') === 'true';
+    }
 
     if (!tourCompleted) {
         window.housekeeprTour = new HousekeeprTour();

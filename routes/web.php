@@ -37,13 +37,11 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // Owners management
-    Route::resource('owners', AdminOwnerController::class);
+    // Owners management - action endpoints only (all UI is on dashboard)
+    Route::post('/owners', [AdminOwnerController::class, 'store'])->name('owners.store');
+    Route::delete('/owners/{owner}', [AdminOwnerController::class, 'destroy'])->name('owners.destroy');
     Route::post('/owners/{owner}/deactivate', [AdminOwnerController::class, 'deactivate'])->name('owners.deactivate');
     Route::post('/owners/{owner}/activate', [AdminOwnerController::class, 'activate'])->name('owners.activate');
-
-    // Audit log
-    Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
 });
 
 // Owner Portal - Setup routes (no email verification required)
@@ -53,7 +51,7 @@ Route::middleware(['auth', 'role:owner,authed-user'])->prefix('owner')->name('ow
 });
 
 // Owner Portal - Main routes (email verification required after setup)
-Route::middleware(['auth', 'verified', 'role:owner,authed-user'])->prefix('owner')->name('owner.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:owner,authed-user', 'owner.active'])->prefix('owner')->name('owner.')->group(function () {
     Route::get('/dashboard', [OwnerDashboardController::class, 'accordion'])->name('dashboard');
 
     // Hotels (for creating first hotel)

@@ -168,23 +168,46 @@
                                     <td>{{ $owner->email }}</td>
                                     <td>{{ $owner->hotels_count ?? 0 }}</td>
                                     <td>
-                                        <span class="badge badge-{{ $owner->status === 'active' ? 'success' : 'warning' }}">
-                                            {{ ucfirst($owner->status) }}
-                                        </span>
+                                        @if($owner->status === 'active')
+                                            <span class="neu-badge success">Actief</span>
+                                        @elseif($owner->status === 'pending')
+                                            <span class="neu-badge warning">Pending</span>
+                                        @elseif($owner->status === 'deactivated')
+                                            <span class="neu-badge danger">Gedeactiveerd</span>
+                                        @else
+                                            <span class="neu-badge">{{ ucfirst($owner->status) }}</span>
+                                        @endif
                                     </td>
                                     <td>
-                                        <div class="action-buttons">
-                                            <button class="action-btn view-owner-btn" data-owner-id="{{ $owner->id }}" aria-label="Bekijken">
-                                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
-                                                </svg>
-                                            </button>
-                                            <button class="action-btn edit-owner-btn" data-owner-id="{{ $owner->id }}" aria-label="Bewerken">
-                                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-                                                </svg>
-                                            </button>
+                                        <div class="action-buttons" style="display: flex; gap: 0.5rem;">
+                                            @if($owner->status === 'active')
+                                                <form action="{{ route('admin.owners.deactivate', $owner) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <button type="submit" class="action-btn" style="color: #f59e0b;" aria-label="Deactiveren" onclick="return confirm('Weet je zeker dat je deze eigenaar wilt deactiveren? De eigenaar kan nog inloggen en navigeren, maar kan geen wijzigingen maken.')">
+                                                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('admin.owners.activate', $owner) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <button type="submit" class="action-btn" style="color: #10b981;" aria-label="Activeren" onclick="return confirm('Weet je zeker dat je deze eigenaar wilt activeren?')">
+                                                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            <form action="{{ route('admin.owners.destroy', $owner) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="action-btn danger" aria-label="Verwijderen" onclick="return confirm('Weet je zeker dat je deze eigenaar definitief wilt verwijderen? Dit kan niet ongedaan worden gemaakt!')">
+                                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -216,7 +239,83 @@
 
         <div class="neu-accordion-content">
             <div class="neu-card">
-                <h2 class="card-title">Audit Log - Recente Activiteit</h2>
+                <h2 class="card-title">Audit Log - Alle Activiteiten</h2>
+
+                {{-- Audit Log Filters --}}
+                <form method="GET" action="{{ route('admin.dashboard') }}" class="audit-log-filters" style="margin-bottom: 2rem;">
+                    <div class="filter-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                        <div class="neu-form-group">
+                            <label for="user_id" class="neu-label">Gebruiker</label>
+                            <select id="user_id" name="user_id" class="neu-input">
+                                <option value="">Alle gebruikers</option>
+                                @foreach($causers as $causer)
+                                    <option value="{{ $causer->id }}" {{ request('user_id') == $causer->id ? 'selected' : '' }}>
+                                        {{ $causer->name ?? $causer->email }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="neu-form-group">
+                            <label for="event" class="neu-label">Type Actie</label>
+                            <select id="event" name="event" class="neu-input">
+                                <option value="">Alle acties</option>
+                                <option value="created" {{ request('event') == 'created' ? 'selected' : '' }}>Aangemaakt</option>
+                                <option value="updated" {{ request('event') == 'updated' ? 'selected' : '' }}>Bijgewerkt</option>
+                                <option value="deleted" {{ request('event') == 'deleted' ? 'selected' : '' }}>Verwijderd</option>
+                            </select>
+                        </div>
+
+                        <div class="neu-form-group">
+                            <label for="from_date" class="neu-label">Van Datum</label>
+                            <input
+                                type="date"
+                                id="from_date"
+                                name="from_date"
+                                class="neu-input"
+                                value="{{ request('from_date') }}"
+                            >
+                        </div>
+
+                        <div class="neu-form-group">
+                            <label for="to_date" class="neu-label">Tot Datum</label>
+                            <input
+                                type="date"
+                                id="to_date"
+                                name="to_date"
+                                class="neu-input"
+                                value="{{ request('to_date') }}"
+                            >
+                        </div>
+
+                        <div class="neu-form-group">
+                            <label for="search" class="neu-label">Zoeken</label>
+                            <input
+                                type="text"
+                                id="search"
+                                name="search"
+                                class="neu-input"
+                                placeholder="Zoek in beschrijving..."
+                                value="{{ request('search') }}"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="filter-actions" style="display: flex; gap: 0.75rem;">
+                        <button type="submit" class="neu-button-primary">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" class="icon-inline">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                            </svg>
+                            Filteren
+                        </button>
+                        @if(request()->hasAny(['user_id', 'event', 'from_date', 'to_date', 'search']))
+                            <a href="{{ route('admin.dashboard') }}" class="neu-button-secondary">
+                                Filters Wissen
+                            </a>
+                        @endif
+                    </div>
+                </form>
+
                 <div class="table-container">
                     <table class="neu-table">
                         <thead>
@@ -230,8 +329,18 @@
                         <tbody>
                             @forelse($auditLogs as $log)
                                 <tr>
-                                    <td><strong>{{ $log->user->name ?? 'Systeem' }}</strong></td>
-                                    <td>{{ $log->action }}</td>
+                                    <td><strong>{{ $log->causer->name ?? $log->causer->email ?? 'Systeem' }}</strong></td>
+                                    <td>
+                                        @if($log->event === 'created')
+                                            <span class="neu-badge success">Aangemaakt</span>
+                                        @elseif($log->event === 'updated')
+                                            <span class="neu-badge warning">Bijgewerkt</span>
+                                        @elseif($log->event === 'deleted')
+                                            <span class="neu-badge danger">Verwijderd</span>
+                                        @else
+                                            <span class="neu-badge" style="background-color: #e5e7eb; color: #6b7280;">Actie</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $log->description }}</td>
                                     <td>{{ $log->created_at->format('d-m-Y H:i') }}</td>
                                 </tr>
@@ -243,6 +352,13 @@
                         </tbody>
                     </table>
                 </div>
+
+                {{-- Pagination --}}
+                @if($auditLogs->hasPages())
+                    <div class="mt-6">
+                        {{ $auditLogs->withQueryString()->links() }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -356,3 +472,63 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 @endsection
+
+{{-- Add Owner Modal --}}
+<div class="neu-modal-overlay" id="addOwnerModal">
+    <div class="neu-modal">
+        <div class="neu-modal-header">
+            <h3>Nieuwe Eigenaar Uitnodigen</h3>
+            <button type="button" class="neu-modal-close" id="closeAddOwnerBtn" aria-label="Sluiten" onclick="document.getElementById('addOwnerModal').classList.remove('active'); document.body.style.overflow = '';">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+            </button>
+        </div>
+        <div class="neu-modal-body">
+            <form action="{{ route('admin.owners.store') }}" method="POST" id="addOwnerForm">
+                @csrf
+
+                <div class="neu-form-group">
+                    <label for="email" class="neu-label">Email Eigenaar</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="neu-input"
+                        placeholder="eigenaar@hotel.nl"
+                        required
+                    >
+                    <small class="neu-hint">Een uitnodigingsmail met tijdelijk wachtwoord wordt naar dit adres gestuurd. De eigenaar vult zelf zijn naam, wachtwoord en hotel in bij eerste login.</small>
+                </div>
+
+                <div class="neu-modal-footer">
+                    <button type="button" class="neu-button-secondary" id="cancelAddOwnerBtn" onclick="document.getElementById('addOwnerModal').classList.remove('active'); document.body.style.overflow = ''; document.getElementById('addOwnerForm').reset();">Annuleren</button>
+                    <button type="submit" class="neu-button-primary">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" class="icon-inline">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        Eigenaar Aanmaken & Uitnodiging Versturen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // If audit log filters are applied, automatically open the audit log section
+    @if(request()->hasAny(['user_id', 'event', 'from_date', 'to_date', 'search']))
+        const auditLogHeader = document.querySelector('.neu-accordion-header[data-section="audit-log"]');
+        if (auditLogHeader) {
+            auditLogHeader.click();
+            setTimeout(() => {
+                auditLogHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 200);
+        }
+    @endif
+});
+</script>
+@endpush
+

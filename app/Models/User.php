@@ -96,4 +96,26 @@ class User extends Authenticatable
     {
         return in_array($this->role, ['owner', 'authed-user']);
     }
+    // Status checking methods
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function isDeactivated(): bool
+    {
+        return $this->status === 'deactivated';
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    public function canPerformActions(): bool
+    {
+        // Only active users can perform actions (create, edit, delete)
+        // Deactivated users can only view (navigate dashboard)
+        return $this->status === 'active';
+    }
 }

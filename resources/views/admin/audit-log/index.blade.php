@@ -41,9 +41,19 @@
                             <option value="">Alle gebruikers</option>
                             @foreach($causers as $causer)
                                 <option value="{{ $causer->id }}" {{ request('user_id') == $causer->id ? 'selected' : '' }}>
-                                    {{ $causer->name }}
+                                    {{ $causer->name ?? $causer->email }}
                                 </option>
                             @endforeach
+                        </select>
+                    </div>
+
+                    <div class="neu-form-group">
+                        <label for="event" class="neu-label">Type Actie</label>
+                        <select id="event" name="event" class="neu-input">
+                            <option value="">Alle acties</option>
+                            <option value="created" {{ request('event') == 'created' ? 'selected' : '' }}>Aangemaakt</option>
+                            <option value="updated" {{ request('event') == 'updated' ? 'selected' : '' }}>Bijgewerkt</option>
+                            <option value="deleted" {{ request('event') == 'deleted' ? 'selected' : '' }}>Verwijderd</option>
                         </select>
                     </div>
 
@@ -89,7 +99,7 @@
                         </svg>
                         Filteren
                     </button>
-                    @if(request()->hasAny(['user_id', 'from_date', 'to_date', 'search']))
+                    @if(request()->hasAny(['user_id', 'event', 'from_date', 'to_date', 'search']))
                         <a href="{{ route('admin.audit-log.index') }}" class="neu-button-secondary">
                             Filters Wissen
                         </a>
@@ -124,8 +134,10 @@
                                         <span class="neu-badge warning">Bijgewerkt</span>
                                     @elseif($activity->event === 'deleted')
                                         <span class="neu-badge danger">Verwijderd</span>
-                                    @else
+                                    @elseif($activity->event)
                                         <span class="neu-badge">{{ ucfirst($activity->event) }}</span>
+                                    @else
+                                        <span class="neu-badge" style="background-color: #e5e7eb; color: #6b7280;">Actie</span>
                                     @endif
                                 </td>
                                 <td class="description-col">

@@ -36,6 +36,9 @@ class OwnerInviteMail extends Mailable
     {
         return new Envelope(
             subject: 'Welkom bij HouseKeepr - Uw account is aangemaakt',
+            replyTo: [
+                config('mail.from.address', 'noreply@housekeepr.nl'),
+            ],
         );
     }
 
@@ -46,6 +49,7 @@ class OwnerInviteMail extends Mailable
     {
         return new Content(
             view: 'emails.owner-invite',
+            text: 'emails.owner-invite-text',
         );
     }
 
@@ -57,5 +61,17 @@ class OwnerInviteMail extends Mailable
     public function attachments(): array
     {
         return [];
+    }
+
+    /**
+     * Get the message headers.
+     */
+    public function headers(): \Illuminate\Mail\Mailables\Headers
+    {
+        return new \Illuminate\Mail\Mailables\Headers(
+            text: [
+                'X-Mailer' => 'HouseKeepr',
+            ],
+        );
     }
 }
