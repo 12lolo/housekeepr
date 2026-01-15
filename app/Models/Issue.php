@@ -26,6 +26,12 @@ class Issue extends Model
         return $this->belongsTo(User::class, 'reported_by');
     }
 
+    // Alias for backwards compatibility (used in views)
+    public function reportedBy()
+    {
+        return $this->reporter();
+    }
+
     // Helper methods
     public function isOpen(): bool
     {

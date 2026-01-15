@@ -69,7 +69,7 @@
                                         <strong>Gemeld door:</strong>
                                     </td>
                                     <td style="font-size: 14px; color: #333333; border-top: 1px solid #e0e0e0; padding-top: 12px;">
-                                        {{ $issue->reportedBy->name }}
+                                        {{ $issue->reportedBy?->name ?? 'Systeem' }}
                                     </td>
                                 </tr>
                                 <tr>
