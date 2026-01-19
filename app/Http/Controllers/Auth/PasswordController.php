@@ -24,6 +24,14 @@ class PasswordController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
+        // Log password change
+        activity()
+            ->causedBy($request->user())
+            ->withProperties([
+                'ip_address' => $request->ip(),
+            ])
+            ->log('Wachtwoord gewijzigd');
+
         return back()->with('status', 'password-updated');
     }
 }

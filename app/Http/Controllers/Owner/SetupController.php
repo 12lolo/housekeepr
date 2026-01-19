@@ -31,17 +31,24 @@ class SetupController extends Controller
             'password' => ['nullable', 'confirmed', Password::defaults()],
         ]);
 
+        // If password_confirmation is filled, password must be filled
+        if ($request->filled('password_confirmation') && ! $request->filled('password')) {
+            return back()->withErrors([
+                'password' => 'Je moet een nieuw wachtwoord invoeren om het te bevestigen.',
+            ])->withInput();
+        }
+
         // If user wants to change password, verify current password
         if ($request->filled('password')) {
-            if (!$request->filled('current_password')) {
+            if (! $request->filled('current_password')) {
                 return back()->withErrors([
-                    'current_password' => 'Je moet je huidige wachtwoord invoeren om een nieuw wachtwoord in te stellen.'
+                    'current_password' => 'Je moet je huidige wachtwoord invoeren om een nieuw wachtwoord in te stellen.',
                 ])->withInput();
             }
 
-            if (!Hash::check($request->current_password, $user->password)) {
+            if (! Hash::check($request->current_password, $user->password)) {
                 return back()->withErrors([
-                    'current_password' => 'Het huidige wachtwoord is onjuist.'
+                    'current_password' => 'Het huidige wachtwoord is onjuist.',
                 ])->withInput();
             }
 
@@ -53,7 +60,7 @@ class SetupController extends Controller
         $user->name = $validated['name'];
 
         // Mark email as verified
-        if (!$user->email_verified_at) {
+        if (! $user->email_verified_at) {
             $user->email_verified_at = now();
         }
 
@@ -75,4 +82,3 @@ class SetupController extends Controller
             ->with('success', 'Account succesvol ingesteld! Je kunt nu je hotel aanmaken.');
     }
 }
-

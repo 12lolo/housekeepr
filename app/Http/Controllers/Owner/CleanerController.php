@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Cleaner;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
@@ -59,6 +59,9 @@ class CleanerController extends Controller
         $validated = $request->validate([
             'email' => 'required|email|unique:users,email',
             'name' => 'required|string|min:2|max:255',
+            'phone' => 'nullable|regex:/^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/|max:20',
+            'availability' => 'required|array|min:1',
+            'availability.*' => 'integer|between:0,6',
         ]);
 
         // Generate temporary password
@@ -68,30 +71,50 @@ class CleanerController extends Controller
         $cleanerUser = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
             'password' => Hash::make($tempPassword),
             'role' => 'cleaner',
-            'status' => 'active',
-            'email_verified_at' => now(), // Auto-verify
+            'status' => 'pending',
         ]);
+
+        // Mark email as verified separately (avoid mass assignment protection)
+        $cleanerUser->email_verified_at = now();
+        $cleanerUser->save();
 
         // Link cleaner to hotel (UC-O5)
         $cleaner = Cleaner::create([
             'user_id' => $cleanerUser->id,
             'hotel_id' => $hotel->id,
-            'status' => 'active',
+            'status' => 'pending', // Pending until first login
         ]);
+
+        // Save availability
+        foreach ($validated['availability'] as $dayOfWeek) {
+            $cleaner->availability()->create([
+                'day_of_week' => $dayOfWeek,
+            ]);
+        }
 
         activity()
             ->performedOn($cleaner)
             ->causedBy($user)
-            ->log('Schoonmaker toegevoegd: ' . $cleanerUser->name);
+            ->log('Schoonmaker toegevoegd: '.$cleanerUser->name);
 
         // TODO: Send welcome email with credentials
         // Mail::to($cleanerUser->email)->send(new CleanerWelcomeMail($cleanerUser, $tempPassword));
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Schoonmaker toegevoegd.',
+                'temp_password' => $tempPassword,
+                'cleaner' => $cleaner->load('user'),
+            ]);
+        }
+
         return redirect()
-            ->route('owner.cleaners.index')
-            ->with('success', 'Schoonmaker toegevoegd. Tijdelijk wachtwoord: ' . $tempPassword . ' (verstuur dit apart!)');
+            ->route('owner.dashboard')
+            ->with('success', 'Schoonmaker toegevoegd. Tijdelijk wachtwoord: '.$tempPassword.' (verstuur dit apart!)');
     }
 
     /**
@@ -115,10 +138,138 @@ class CleanerController extends Controller
                 $query->where('date', '>=', today()->subDays(7))
                     ->with(['room', 'booking'])
                     ->orderBy('date', 'desc');
-            }
+            },
         ]);
 
         return view('owner.cleaners.show', compact('cleaner'));
+    }
+
+    /**
+     * Show the form for editing a cleaner.
+     */
+    public function edit(Cleaner $cleaner)
+    {
+        Gate::authorize('manage-hotel');
+
+        // Verify ownership
+        $user = auth()->user();
+        $hotel = $user->role === 'owner' ? $user->hotel : $user->cleaner->hotel;
+
+        if ($cleaner->hotel_id !== $hotel->id) {
+            abort(403);
+        }
+
+        return view('owner.cleaners.edit', compact('cleaner'));
+    }
+
+    /**
+     * Update the specified cleaner.
+     */
+    public function update(Request $request, Cleaner $cleaner)
+    {
+        Gate::authorize('manage-hotel');
+
+        // Verify ownership
+        $user = auth()->user();
+        $hotel = $user->role === 'owner' ? $user->hotel : $user->cleaner->hotel;
+
+        if ($cleaner->hotel_id !== $hotel->id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|min:2|max:255',
+            'email' => 'required|email|unique:users,email,'.$cleaner->user_id,
+            'phone' => 'nullable|regex:/^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/|max:20',
+            'availability' => 'required|array|min:1',
+            'availability.*' => 'integer|between:0,6',
+        ]);
+
+        // Update user
+        $cleaner->user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+        ]);
+
+        // Update availability - delete old and create new
+        $cleaner->availability()->delete();
+        foreach ($validated['availability'] as $dayOfWeek) {
+            $cleaner->availability()->create([
+                'day_of_week' => $dayOfWeek,
+            ]);
+        }
+
+        activity()
+            ->performedOn($cleaner)
+            ->causedBy($user)
+            ->log('Schoonmaker bijgewerkt: '.$cleaner->user->name);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Schoonmaker bijgewerkt.',
+                'cleaner' => $cleaner->load('user'),
+            ]);
+        }
+
+        return redirect()
+            ->route('owner.dashboard')
+            ->with('success', 'Schoonmaker bijgewerkt.');
+    }
+
+    /**
+     * Remove the specified cleaner from storage.
+     */
+    public function destroy(Request $request, Cleaner $cleaner)
+    {
+        Gate::authorize('manage-hotel');
+
+        // Verify ownership
+        $user = auth()->user();
+        $hotel = $user->role === 'owner' ? $user->hotel : $user->cleaner->hotel;
+
+        if ($cleaner->hotel_id !== $hotel->id) {
+            abort(403);
+        }
+
+        // Check for active tasks
+        $activeTasks = $cleaner->cleaningTasks()
+            ->where('status', '!=', 'completed')
+            ->where('date', '>=', today())
+            ->count();
+
+        if ($activeTasks > 0) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kan schoonmaker niet verwijderen: er zijn nog '.$activeTasks.' actieve taken.',
+                ], 400);
+            }
+
+            return back()->with('error', 'Kan schoonmaker niet verwijderen: er zijn nog '.$activeTasks.' actieve taken.');
+        }
+
+        $cleanerName = $cleaner->user->name;
+        $cleanerUser = $cleaner->user;
+
+        $cleaner->delete();
+        $cleanerUser->delete();
+
+        activity()
+            ->causedBy($user)
+            ->log('Schoonmaker verwijderd: '.$cleanerName);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Schoonmaker verwijderd.',
+            ]);
+        }
+
+        return redirect()
+            ->route('owner.dashboard')
+            ->with('success', 'Schoonmaker verwijderd.');
     }
 
     /**
@@ -147,7 +298,7 @@ class CleanerController extends Controller
             ->count();
 
         if ($activeTasks > 0) {
-            return back()->with('error', 'Kan schoonmaker niet deactiveren: er zijn nog ' . $activeTasks . ' actieve taken.');
+            return back()->with('error', 'Kan schoonmaker niet deactiveren: er zijn nog '.$activeTasks.' actieve taken.');
         }
 
         $cleaner->update(['status' => 'deactivated']);

@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Models\CleaningTask;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Response;
-use Carbon\Carbon;
 
 class ReportController extends Controller
 {
@@ -92,7 +92,7 @@ class ReportController extends Controller
             $file = fopen('php://output', 'w');
 
             // BOM for Excel UTF-8 support
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
             // CSV headers
             fputcsv($file, [
@@ -135,5 +135,86 @@ class ReportController extends Controller
         };
 
         return Response::stream($callback, 200, $headers);
+    }
+
+    /**
+     * Display cleaner performance report.
+     */
+    public function cleanerPerformance(Request $request)
+    {
+        Gate::authorize('manage-hotel');
+
+        $user = auth()->user();
+        $hotel = $user->role === 'owner' ? $user->hotel : $user->cleaner->hotel;
+
+        // Get date range from request or default to last 7 days
+        $endDate = $request->filled('end_date')
+            ? Carbon::parse($request->end_date)
+            : today();
+
+        $startDate = $request->filled('start_date')
+            ? Carbon::parse($request->start_date)
+            : $endDate->copy()->subDays(6);
+
+        // Get all completed tasks for this hotel in the date range
+        $tasks = CleaningTask::whereHas('room', function ($query) use ($hotel) {
+            $query->where('hotel_id', $hotel->id);
+        })
+            ->where('status', 'completed')
+            ->whereNotNull('actual_duration')
+            ->whereBetween('date', [$startDate, $endDate])
+            ->with(['room', 'cleaner.user', 'booking'])
+            ->orderBy('date', 'desc')
+            ->orderBy('actual_end_time', 'desc')
+            ->get();
+
+        // Calculate performance metrics per task
+        $tasksWithMetrics = $tasks->map(function ($task) {
+            $variance = $task->actual_duration - $task->planned_duration;
+            $variancePercent = $task->planned_duration > 0
+                ? round(($variance / $task->planned_duration) * 100, 1)
+                : 0;
+
+            return [
+                'task' => $task,
+                'variance' => $variance,
+                'variance_percent' => $variancePercent,
+                'performance' => $variance < 0 ? 'faster' : ($variance > 0 ? 'slower' : 'exact'),
+            ];
+        });
+
+        // Group by cleaner and calculate aggregate stats
+        $cleanerStats = $tasks->groupBy('cleaner_id')->map(function ($cleanerTasks, $cleanerId) {
+            $totalTasks = $cleanerTasks->count();
+            $totalPlanned = $cleanerTasks->sum('planned_duration');
+            $totalActual = $cleanerTasks->sum('actual_duration');
+            $variance = $totalActual - $totalPlanned;
+            $variancePercent = $totalPlanned > 0
+                ? round(($variance / $totalPlanned) * 100, 1)
+                : 0;
+
+            $fasterCount = $cleanerTasks->filter(function ($task) {
+                return $task->actual_duration < $task->planned_duration;
+            })->count();
+
+            $slowerCount = $cleanerTasks->filter(function ($task) {
+                return $task->actual_duration > $task->planned_duration;
+            })->count();
+
+            return [
+                'cleaner' => $cleanerTasks->first()->cleaner,
+                'total_tasks' => $totalTasks,
+                'total_planned_minutes' => $totalPlanned,
+                'total_actual_minutes' => $totalActual,
+                'variance_minutes' => $variance,
+                'variance_percent' => $variancePercent,
+                'faster_count' => $fasterCount,
+                'slower_count' => $slowerCount,
+                'exact_count' => $totalTasks - $fasterCount - $slowerCount,
+                'performance' => $variance < 0 ? 'faster' : ($variance > 0 ? 'slower' : 'exact'),
+            ];
+        })->sortByDesc('total_tasks');
+
+        return view('owner.reports.cleaner-performance', compact('startDate', 'endDate', 'tasksWithMetrics', 'cleanerStats'));
     }
 }

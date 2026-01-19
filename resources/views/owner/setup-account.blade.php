@@ -51,7 +51,7 @@
             </div>
 
             <!-- Account Setup Form -->
-            <form method="POST" action="{{ route('owner.setup.account.store') }}">
+            <form method="POST" action="{{ route('owner.setup.account.store') }}" id="accountSetupForm">
                 @csrf
 
                 <!-- Name -->
@@ -130,5 +130,64 @@
             </form>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('accountSetupForm');
+            const currentPassword = document.getElementById('current_password');
+            const password = document.getElementById('password');
+            const passwordConfirmation = document.getElementById('password_confirmation');
+
+            form.addEventListener('submit', function(e) {
+                // Check if password_confirmation is filled but password is not
+                if (passwordConfirmation.value && !password.value) {
+                    e.preventDefault();
+                    alert('Je moet een nieuw wachtwoord invoeren om het te bevestigen.');
+                    password.focus();
+                    return false;
+                }
+
+                // Check if password is filled but current_password is not
+                if (password.value && !currentPassword.value) {
+                    e.preventDefault();
+                    alert('Je moet je huidige wachtwoord invoeren om een nieuw wachtwoord in te stellen.');
+                    currentPassword.focus();
+                    return false;
+                }
+
+                // Check if passwords match when both are filled
+                if (password.value && passwordConfirmation.value && password.value !== passwordConfirmation.value) {
+                    e.preventDefault();
+                    alert('De wachtwoorden komen niet overeen.');
+                    passwordConfirmation.focus();
+                    return false;
+                }
+            });
+
+            // Real-time validation feedback
+            passwordConfirmation.addEventListener('input', function() {
+                if (this.value && !password.value) {
+                    this.setCustomValidity('Vul eerst een nieuw wachtwoord in');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+
+            password.addEventListener('input', function() {
+                if (this.value && !currentPassword.value) {
+                    this.setCustomValidity('Vul eerst je huidige wachtwoord in');
+                } else {
+                    this.setCustomValidity('');
+                }
+                // Clear password_confirmation validity when password changes
+                passwordConfirmation.setCustomValidity('');
+            });
+
+            currentPassword.addEventListener('input', function() {
+                // Clear password validity when current password is filled
+                password.setCustomValidity('');
+            });
+        });
+    </script>
 @endsection
 

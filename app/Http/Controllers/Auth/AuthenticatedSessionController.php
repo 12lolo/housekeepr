@@ -28,6 +28,34 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = auth()->user();
+
+        // Activate pending cleaners on first login
+        if ($user->role === 'cleaner' && $user->status === 'pending') {
+            $user->status = 'active';
+            $user->save();
+
+            // Also update the cleaner record
+            if ($user->cleaner) {
+                $user->cleaner->status = 'active';
+                $user->cleaner->save();
+
+                activity()
+                    ->causedBy($user)
+                    ->performedOn($user->cleaner)
+                    ->log('Schoonmaker geactiveerd bij eerste login');
+            }
+        }
+
+        // Log successful login
+        activity()
+            ->causedBy($user)
+            ->withProperties([
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ])
+            ->log('Succesvol ingelogd');
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
@@ -36,6 +64,18 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $user = auth()->user();
+
+        // Log logout before destroying session
+        if ($user) {
+            activity()
+                ->causedBy($user)
+                ->withProperties([
+                    'ip_address' => $request->ip(),
+                ])
+                ->log('Uitgelogd');
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

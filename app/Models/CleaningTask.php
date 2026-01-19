@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class CleaningTask extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'room_id',
         'cleaner_id',
@@ -77,6 +77,12 @@ class CleaningTask extends Model
         ]);
     }
 
+    /**
+     * @deprecated Use TaskController@complete() instead which properly handles pauses
+     *
+     * Simple complete method - does NOT account for pauses.
+     * Use the controller method for proper duration calculation.
+     */
     public function complete()
     {
         $actualDuration = null;

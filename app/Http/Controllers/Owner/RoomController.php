@@ -63,6 +63,22 @@ class RoomController extends Controller
             'checkin_time' => 'required|date_format:H:i',
         ]);
 
+        // Validate available time for cleaning (UC-R8, UC-R9)
+        $checkoutTime = \Carbon\Carbon::parse($validated['checkout_time']);
+        $checkinTime = \Carbon\Carbon::parse($validated['checkin_time']);
+        $availableMinutes = $checkoutTime->diffInMinutes($checkinTime);
+        $requiredMinutes = $validated['standard_duration'] + 10; // Include 10 min buffer
+
+        if ($requiredMinutes > $availableMinutes) {
+            return back()
+                ->withInput()
+                ->with('warning',
+                    "Let op: De standaard schoonmaaktijd ({$validated['standard_duration']} min) + buffer (10 min) ".
+                    "overschrijdt de beschikbare tijd ({$availableMinutes} min tussen check-out en check-in). ".
+                    'Dit kan leiden tot problemen bij het plannen van schoonmaaktaken.'
+                );
+        }
+
         // Create room
         $room = Room::create([
             'hotel_id' => $hotel->id,
@@ -83,7 +99,7 @@ class RoomController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Kamer succesvol aangemaakt.',
-                'room' => $room
+                'room' => $room,
             ]);
         }
 
@@ -165,6 +181,32 @@ class RoomController extends Controller
             'checkin_time' => 'required|date_format:H:i',
         ]);
 
+        // Validate available time for cleaning (UC-R8, UC-R9)
+        $checkoutTime = \Carbon\Carbon::parse($validated['checkout_time']);
+        $checkinTime = \Carbon\Carbon::parse($validated['checkin_time']);
+        $availableMinutes = $checkoutTime->diffInMinutes($checkinTime);
+        $requiredMinutes = $validated['standard_duration'] + 10; // Include 10 min buffer
+
+        if ($requiredMinutes > $availableMinutes) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'warning' => true,
+                    'message' => "Let op: De standaard schoonmaaktijd ({$validated['standard_duration']} min) + buffer (10 min) ".
+                        "overschrijdt de beschikbare tijd ({$availableMinutes} min tussen check-out en check-in). ".
+                        'Dit kan leiden tot problemen bij het plannen van schoonmaaktaken.',
+                ], 200);
+            }
+
+            return back()
+                ->withInput()
+                ->with('warning',
+                    "Let op: De standaard schoonmaaktijd ({$validated['standard_duration']} min) + buffer (10 min) ".
+                    "overschrijdt de beschikbare tijd ({$availableMinutes} min tussen check-out en check-in). ".
+                    'Dit kan leiden tot problemen bij het plannen van schoonmaaktaken.'
+                );
+        }
+
         $room->update($validated);
 
         activity()
@@ -177,7 +219,7 @@ class RoomController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Kamer bijgewerkt.',
-                'room' => $room
+                'room' => $room,
             ]);
         }
 
@@ -211,10 +253,27 @@ class RoomController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Kan kamer niet verwijderen: er zijn nog actieve taken.'
+                    'message' => 'Kan kamer niet verwijderen: er zijn nog actieve taken.',
                 ], 422);
             }
+
             return back()->with('error', 'Kan kamer niet verwijderen: er zijn nog actieve taken.');
+        }
+
+        // Check for future bookings
+        $futureBookings = $room->bookings()
+            ->where('check_in', '>=', today())
+            ->count();
+
+        if ($futureBookings > 0) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kan kamer niet verwijderen: er zijn nog toekomstige boekingen.',
+                ], 422);
+            }
+
+            return back()->with('error', 'Kan kamer niet verwijderen: er zijn nog toekomstige boekingen.');
         }
 
         activity()
@@ -228,7 +287,7 @@ class RoomController extends Controller
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Kamer verwijderd.'
+                'message' => 'Kamer verwijderd.',
             ]);
         }
 

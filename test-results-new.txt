@@ -1,0 +1,33 @@
+PHP Warning:  Module "curl" is already loaded in Unknown on line 0
+PHP Warning:  Module "zip" is already loaded in Unknown on line 0
+✅ TESTING: Automatic Cleaning Task Creation
+=============================================
+
+📍 Setup:
+  Hotel: Hotel Senne
+  Room: A1 (Standard)
+  Standard Duration: 60 min
+  Available Cleaners: 2
+
+❌ NO CAPACITY for 2025-12-16 - Creating it...
+
+   Illuminate\Database\UniqueConstraintViolationException 
+
+  SQLSTATE[23000]: Integrity constraint violation: 19 UNIQUE constraint failed: day_capacities.hotel_id, day_capacities.date (Connection: sqlite, SQL: insert into "day_capacities" ("hotel_id", "date", "capacity", "updated_at", "created_at") values (3, 2025-12-16 00:00:00, 2, 2025-12-15 15:08:21, 2025-12-15 15:08:21))
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:819
+    815▕         // message to include the bindings with SQL, which will make this exception a
+    816▕         // lot more helpful to the developer instead of just the database's errors.
+    817▕         catch (Exception $e) {
+    818▕             if ($this->isUniqueConstraintError($e)) {
+  ➜ 819▕                 throw new UniqueConstraintViolationException(
+    820▕                     $this->getName(), $query, $this->prepareBindings($bindings), $e
+    821▕                 );
+    822▕             }
+    823▕
+
+      [2m+18 vendor frames [22m
+
+  19  test-algorithm-final.php:31
+      Illuminate\Database\Eloquent\Model::__callStatic()
+

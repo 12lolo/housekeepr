@@ -266,8 +266,33 @@ $neu-blur-lg: 40px;
 @mixin neu-dark-input() {
   @include neu-input($neu-dark-bg);
   color: $neu-dark-text;
+  background: $neu-dark-bg;
 
   &::placeholder {
     color: $neu-dark-text-muted;
+  }
+
+  // Override autofill styles
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px $neu-dark-bg inset !important;
+    -webkit-text-fill-color: $neu-dark-text !important;
+    box-shadow:
+      inset #{$neu-distance-sm * 0.7} #{$neu-distance-sm * 0.7} #{$neu-blur-sm} darken($neu-dark-bg, 10%),
+      inset #{-$neu-distance-sm * 0.7} #{-$neu-distance-sm * 0.7} #{$neu-blur-sm} lighten($neu-dark-bg, 3%),
+      0 0 0 30px $neu-dark-bg inset !important;
+  }
+
+  // Ensure filled state stays dark
+  &:not(:placeholder-shown) {
+    background: $neu-dark-bg;
+    color: $neu-dark-text;
+  }
+
+  &:focus {
+    background: $neu-dark-bg;
+    color: $neu-dark-text;
   }
 }

@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\Hotel;
 use App\Mail\OwnerInviteMail;
+use App\Models\Hotel;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -64,19 +64,39 @@ class OwnerController extends Controller
             ->performedOn($owner)
             ->causedBy(auth()->user())
             ->event('created')
-            ->log('Eigenaar uitgenodigd: ' . $owner->email);
+            ->log('Eigenaar uitgenodigd: '.$owner->email);
 
         // Send invitation email
         try {
             Mail::to($owner->email)->send(new OwnerInviteMail($owner, null, $tempPassword));
+
+            // Log email sent
+            activity()
+                ->performedOn($owner)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'email_type' => 'owner_invitation',
+                    'recipient' => $owner->email,
+                ])
+                ->log('Uitnodigingsmail verzonden naar: '.$owner->email);
         } catch (\Exception $e) {
             // Rollback if email fails
             $owner->delete();
 
+            // Log failed email
+            activity()
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'email_type' => 'owner_invitation',
+                    'recipient' => $validated['email'],
+                    'error' => $e->getMessage(),
+                ])
+                ->log('Uitnodigingsmail MISLUKT naar: '.$validated['email']);
+
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Versturen van uitnodiging mislukt. Probeer het later opnieuw.'
+                    'message' => 'Versturen van uitnodiging mislukt. Probeer het later opnieuw.',
                 ], 500);
             }
 
@@ -88,14 +108,14 @@ class OwnerController extends Controller
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Uitnodiging verstuurd naar ' . $owner->email,
-                'owner' => $owner
+                'message' => 'Uitnodiging verstuurd naar '.$owner->email,
+                'owner' => $owner,
             ]);
         }
 
         return redirect()
             ->route('admin.dashboard')
-            ->with('success', 'Uitnodiging verstuurd naar ' . $owner->email . '. De eigenaar kan nu inloggen en alle gegevens zelf invullen.');
+            ->with('success', 'Uitnodiging verstuurd naar '.$owner->email.'. De eigenaar kan nu inloggen en alle gegevens zelf invullen.');
     }
 
     /**
@@ -177,7 +197,7 @@ class OwnerController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Eigenaar succesvol bijgewerkt',
-                'owner' => $owner->load('hotels')
+                'owner' => $owner->load('hotels'),
             ]);
         }
 
@@ -247,7 +267,7 @@ class OwnerController extends Controller
             ->performedOn($owner)
             ->causedBy(auth()->user())
             ->event('deleted')
-            ->log('Eigenaar verwijderd: ' . ($owner->name ?? $owner->email));
+            ->log('Eigenaar verwijderd: '.($owner->name ?? $owner->email));
 
         $owner->delete();
 

@@ -125,26 +125,35 @@
 
                     <!-- Action Buttons (Large Touch Targets) -->
                     @if($task->status === 'pending')
-                        <button class="neu-button-primary" style="width: 100%; padding: 1rem; font-size: 1rem; font-weight: 600;">
-                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
-                            </svg>
-                            Start Taak
-                        </button>
+                        <form action="{{ route('cleaner.tasks.start', $task) }}" method="POST" style="width: 100%;">
+                            @csrf
+                            <button type="submit" class="neu-button-primary" style="width: 100%; padding: 1rem; font-size: 1rem; font-weight: 600;">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                                </svg>
+                                Start Taak
+                            </button>
+                        </form>
                     @elseif($task->status === 'in_progress')
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-                            <button style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 6px 6px 15px rgba(245, 158, 11, 0.4), -6px -6px 15px rgba(255, 255, 255, 0.6); color: white; border: none; border-radius: 15px; padding: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem;">
-                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20" style="display: block; margin: 0 auto 0.25rem;">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                </svg>
-                                Pauzeer
-                            </button>
-                            <button style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 6px 6px 15px rgba(16, 185, 129, 0.4), -6px -6px 15px rgba(255, 255, 255, 0.6); color: white; border: none; border-radius: 15px; padding: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem;">
-                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20" style="display: block; margin: 0 auto 0.25rem;">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                </svg>
-                                Klaar
-                            </button>
+                            <form action="{{ route('cleaner.tasks.stop', $task) }}" method="POST">
+                                @csrf
+                                <button type="submit" style="width: 100%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 6px 6px 15px rgba(245, 158, 11, 0.4), -6px -6px 15px rgba(255, 255, 255, 0.6); color: white; border: none; border-radius: 15px; padding: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem;">
+                                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20" style="display: block; margin: 0 auto 0.25rem;">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Pauzeer
+                                </button>
+                            </form>
+                            <form action="{{ route('cleaner.tasks.complete', $task) }}" method="POST">
+                                @csrf
+                                <button type="submit" style="width: 100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 6px 6px 15px rgba(16, 185, 129, 0.4), -6px -6px 15px rgba(255, 255, 255, 0.6); color: white; border: none; border-radius: 15px; padding: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem;">
+                                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20" style="display: block; margin: 0 auto 0.25rem;">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Klaar
+                                </button>
+                            </form>
                         </div>
                         @if($task->actual_start_time)
                         <div style="margin-top: 0.75rem; padding: 0.75rem; background: var(--neu-light-bg, #e0e5ec); border-radius: 10px; box-shadow: inset 2px 2px 5px rgba(163, 177, 198, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.5); text-align: center;">

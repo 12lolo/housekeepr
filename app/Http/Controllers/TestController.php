@@ -112,6 +112,9 @@ class TestController extends Controller
             'db:show',
             'test:booking-flow',
             'housekeepr:ensure-capacities',
+            'housekeepr:refresh-bookings',
+            'housekeepr:debug-schedule',
+            'housekeepr:trigger-booking-events',
         ];
 
         if (! in_array($command, $allowedCommands)) {

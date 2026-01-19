@@ -380,6 +380,108 @@
   }
 }
 
+// Global Button Styles
+.neu-button-primary {
+  @include neu-button-filled($neu-light-primary);
+
+  @media (prefers-color-scheme: dark) {
+    @include neu-button-filled($neu-dark-primary);
+
+    // Override white inset shadows for dark mode
+    box-shadow:
+      #{$neu-distance-sm} #{$neu-distance-sm} #{$neu-blur-sm} darken($neu-dark-primary, 20%),
+      #{-$neu-distance-sm} #{-$neu-distance-sm} #{$neu-blur-sm} lighten($neu-dark-primary, 8%),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 0 0 1px rgba(0, 0, 0, 0.2);
+
+    &:hover {
+      box-shadow:
+        #{$neu-distance-sm * 1.2} #{$neu-distance-sm * 1.2} #{$neu-blur-sm * 1.2} darken($neu-dark-primary, 22%),
+        #{-$neu-distance-sm * 1.2} #{-$neu-distance-sm * 1.2} #{$neu-blur-sm * 1.2} lighten($neu-dark-primary, 10%),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 0 0 1px rgba(0, 0, 0, 0.25);
+    }
+
+    &:active,
+    &:focus {
+      box-shadow:
+        inset #{$neu-distance-sm * 0.6} #{$neu-distance-sm * 0.6} #{$neu-blur-sm * 0.8} darken($neu-dark-primary, 25%),
+        inset #{-$neu-distance-sm * 0.6} #{-$neu-distance-sm * 0.6} #{$neu-blur-sm * 0.8} lighten($neu-dark-primary, 5%),
+        0 0 0 1px rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+.neu-button-secondary {
+  @include neu-button($neu-light-bg, $neu-light-text);
+
+  @media (prefers-color-scheme: dark) {
+    @include neu-dark-button($neu-dark-text);
+  }
+}
+
+.neu-button-success {
+  @include neu-button-filled($neu-light-success);
+
+  @media (prefers-color-scheme: dark) {
+    @include neu-button-filled($neu-dark-success);
+
+    // Override white inset shadows for dark mode
+    box-shadow:
+      #{$neu-distance-sm} #{$neu-distance-sm} #{$neu-blur-sm} darken($neu-dark-success, 20%),
+      #{-$neu-distance-sm} #{-$neu-distance-sm} #{$neu-blur-sm} lighten($neu-dark-success, 8%),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 0 0 1px rgba(0, 0, 0, 0.2);
+
+    &:hover {
+      box-shadow:
+        #{$neu-distance-sm * 1.2} #{$neu-distance-sm * 1.2} #{$neu-blur-sm * 1.2} darken($neu-dark-success, 22%),
+        #{-$neu-distance-sm * 1.2} #{-$neu-distance-sm * 1.2} #{$neu-blur-sm * 1.2} lighten($neu-dark-success, 10%),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 0 0 1px rgba(0, 0, 0, 0.25);
+    }
+
+    &:active,
+    &:focus {
+      box-shadow:
+        inset #{$neu-distance-sm * 0.6} #{$neu-distance-sm * 0.6} #{$neu-blur-sm * 0.8} darken($neu-dark-success, 25%),
+        inset #{-$neu-distance-sm * 0.6} #{-$neu-distance-sm * 0.6} #{$neu-blur-sm * 0.8} lighten($neu-dark-success, 5%),
+        0 0 0 1px rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+.neu-button-danger {
+  @include neu-button-filled($neu-light-danger);
+
+  @media (prefers-color-scheme: dark) {
+    @include neu-button-filled($neu-dark-danger);
+
+    // Override white inset shadows for dark mode
+    box-shadow:
+      #{$neu-distance-sm} #{$neu-distance-sm} #{$neu-blur-sm} darken($neu-dark-danger, 20%),
+      #{-$neu-distance-sm} #{-$neu-distance-sm} #{$neu-blur-sm} lighten($neu-dark-danger, 8%),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 0 0 1px rgba(0, 0, 0, 0.2);
+
+    &:hover {
+      box-shadow:
+        #{$neu-distance-sm * 1.2} #{$neu-distance-sm * 1.2} #{$neu-blur-sm * 1.2} darken($neu-dark-danger, 22%),
+        #{-$neu-distance-sm * 1.2} #{-$neu-distance-sm * 1.2} #{$neu-blur-sm * 1.2} lighten($neu-dark-danger, 10%),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 0 0 1px rgba(0, 0, 0, 0.25);
+    }
+
+    &:active,
+    &:focus {
+      box-shadow:
+        inset #{$neu-distance-sm * 0.6} #{$neu-distance-sm * 0.6} #{$neu-blur-sm * 0.8} darken($neu-dark-danger, 25%),
+        inset #{-$neu-distance-sm * 0.6} #{-$neu-distance-sm * 0.6} #{$neu-blur-sm * 0.8} lighten($neu-dark-danger, 5%),
+        0 0 0 1px rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
 // Button group
 .neu-button-group {
   display: flex;
@@ -450,6 +552,22 @@
 
   &.danger {
     @include neu-alert('danger', $neu-light-bg);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    @include neu-alert('info', $neu-dark-bg);
+
+    &.success {
+      @include neu-alert('success', $neu-dark-bg);
+    }
+
+    &.warning {
+      @include neu-alert('warning', $neu-dark-bg);
+    }
+
+    &.danger {
+      @include neu-alert('danger', $neu-dark-bg);
+    }
   }
 }
 

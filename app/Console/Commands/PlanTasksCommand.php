@@ -2,17 +2,17 @@
 
 namespace App\Console\Commands;
 
+use App\Mail\UrgentIssueMail;
 use App\Models\Booking;
-use App\Models\CleaningTask;
 use App\Models\Cleaner;
+use App\Models\CleaningTask;
 use App\Models\DayCapacity;
 use App\Models\Hotel;
 use App\Models\Issue;
-use App\Mail\UrgentIssueMail;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use Carbon\Carbon;
 
 class PlanTasksCommand extends Command
 {
@@ -67,6 +67,7 @@ class PlanTasksCommand extends Command
 
         if ($hotels->isEmpty()) {
             $this->error('No hotels found to plan for.');
+
             return 1;
         }
 
@@ -96,7 +97,8 @@ class PlanTasksCommand extends Command
         $cleaners = $hotel->cleaners()->where('status', 'active')->get();
 
         if ($cleaners->isEmpty()) {
-            $this->warn("  ⚠️  No active cleaners found. Skipping.");
+            $this->warn('  ⚠️  No active cleaners found. Skipping.');
+
             return;
         }
 
@@ -115,6 +117,7 @@ class PlanTasksCommand extends Command
 
         if ($bookings->isEmpty()) {
             $this->line("  ✓ No bookings to plan.\n");
+
             return;
         }
 
@@ -132,8 +135,9 @@ class PlanTasksCommand extends Command
         $date = $booking->check_in_datetime->toDateString();
 
         // Check if task already exists
-        if ($booking->cleaningTask && !$force) {
+        if ($booking->cleaningTask && ! $force) {
             $this->line("  → Booking #{$booking->id} (Room {$room->room_number}) already has task. Skipping.");
+
             return;
         }
 
@@ -150,7 +154,7 @@ class PlanTasksCommand extends Command
             // Delete existing task if being replanned
             if ($booking->cleaningTask && $force) {
                 $booking->cleaningTask->delete();
-                $this->line("     Removed blocked task.");
+                $this->line('     Removed blocked task.');
             }
 
             return;
@@ -161,10 +165,11 @@ class PlanTasksCommand extends Command
             ->where('date', $date)
             ->first();
 
-        if (!$capacity || $capacity->capacity <= 0) {
+        if (! $capacity || $capacity->capacity <= 0) {
             $this->warn("  ⚠️  Booking #{$booking->id} - No capacity set for {$date}");
-            $this->createUrgentIssue($booking, 'Geen capaciteit ingesteld voor ' . $date);
+            $this->createUrgentIssue($booking, 'Geen capaciteit ingesteld voor '.$date);
             $this->stats['errors']++;
+
             return;
         }
 
@@ -177,6 +182,7 @@ class PlanTasksCommand extends Command
             $this->warn("  ⚠️  Booking #{$booking->id} - Not enough time to clean");
             $this->createUrgentIssue($booking, 'Onvoldoende tijd om te schoonmaken voor check-in');
             $this->stats['errors']++;
+
             return;
         }
 
@@ -185,9 +191,10 @@ class PlanTasksCommand extends Command
             return $cleaner->cleaningTasks()->where('date', $date)->count();
         })->first();
 
-        if (!$assignedCleaner) {
+        if (! $assignedCleaner) {
             $this->error("  ❌ No cleaner available for booking #{$booking->id}");
             $this->stats['errors']++;
+
             return;
         }
 
@@ -232,11 +239,11 @@ class PlanTasksCommand extends Command
     {
         $room = $booking->room;
 
-        // Create urgent issue
+        // Create urgent issue (planning problems should not block room, so use 'graag_snel')
         $issue = Issue::create([
             'room_id' => $room->id,
-            'reported_by' => 1, // System user
-            'impact' => 'graag_snel',
+            'reported_by' => \App\Models\User::getSystemUserId(),
+            'impact' => 'graag_snel', // Planning issues don't block the room physically
             'note' => "[PLANNER] {$description}\n\nBoeking #{$booking->id}\nCheck-in: {$booking->check_in_datetime->format('d-m-Y H:i')}",
             'status' => 'open',
         ]);

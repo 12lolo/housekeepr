@@ -8,16 +8,24 @@ use Illuminate\Database\Eloquent\Model;
 class Booking extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'room_id',
+        'guest_name',
+        'check_in',
+        'check_out',
         'check_in_datetime',
+        'check_out_datetime',
         'notes',
     ];
 
     protected function casts(): array
     {
         return [
+            'check_in' => 'date',
+            'check_out' => 'date',
             'check_in_datetime' => 'datetime',
+            'check_out_datetime' => 'datetime',
         ];
     }
 

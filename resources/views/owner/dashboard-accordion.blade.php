@@ -46,6 +46,12 @@
         </svg>
         Schoonmaakplanning
     </a>
+    <a href="javascript:void(0)" class="nav-section-link" data-section="prestaties" onclick="event.preventDefault();">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+        </svg>
+        Prestaties
+    </a>
 @endsection
 
 @section('content')
@@ -86,7 +92,7 @@
         <div class="neu-accordion-content active">
             <!-- Urgent Issues Alert -->
             @if($urgent_issues->count() > 0)
-                <div class="neu-alert danger urgent-alert">
+                <div class="neu-alert danger urgent-alert" style="margin-bottom: 2rem;">
                     <div class="alert-icon">
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
@@ -369,6 +375,14 @@
                                                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
                                                 </svg>
                                             </button>
+                                            <button class="action-btn delete-btn" aria-label="Verwijderen"
+                                                    data-booking-id="{{ $booking->id }}"
+                                                    data-guest-name="{{ $booking->guest_name }}"
+                                                    onclick="confirmDeleteBooking(this)">
+                                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                                </svg>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -426,14 +440,34 @@
                                 <tr>
                                     <td><strong>{{ $cleaner->user->name }}</strong></td>
                                     <td>{{ $cleaner->user->email }}</td>
-                                    <td>{{ $cleaner->phone ?? '-' }}</td>
+                                    <td>{{ $cleaner->user->phone ?? '-' }}</td>
                                     <td>
                                         <span class="badge badge-{{ $cleaner->status === 'active' ? 'success' : 'secondary' }}">
                                             {{ ucfirst($cleaner->status) }}
                                         </span>
                                     </td>
                                     <td>
-                                        <!-- No actions for cleaners yet -->
+                                        <div class="action-buttons">
+                                            <button class="action-btn" aria-label="Bewerken"
+                                                    data-cleaner-id="{{ $cleaner->id }}"
+                                                    data-cleaner-name="{{ $cleaner->user->name }}"
+                                                    data-cleaner-email="{{ $cleaner->user->email }}"
+                                                    data-cleaner-phone="{{ $cleaner->user->phone ?? '' }}"
+                                                    data-cleaner-availability="{{ implode(',', $cleaner->getAvailableDays()) }}"
+                                                    onclick="editCleaner(this)">
+                                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                                                </svg>
+                                            </button>
+                                            <button class="action-btn delete-btn" aria-label="Verwijderen"
+                                                    data-cleaner-id="{{ $cleaner->id }}"
+                                                    data-cleaner-name="{{ $cleaner->user->name }}"
+                                                    onclick="confirmDeleteCleaner(this)">
+                                                <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -548,6 +582,12 @@
             <div class="neu-card">
                 <div class="card-header-actions">
                     <h2 class="card-title">Schoonmaakplanning</h2>
+                    <button class="neu-button-primary" onclick="openModal('plannerModal')">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+                        </svg>
+                        Plan Nu
+                    </button>
                 </div>
 
                 <div class="table-container">
@@ -601,6 +641,132 @@
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Prestaties Section -->
+    <div class="neu-accordion-section" id="section-prestaties">
+        <button class="neu-accordion-header" data-section="prestaties">
+            <div class="neu-accordion-header-content">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                </svg>
+                <span>Schoonmaker Prestaties</span>
+            </div>
+            <svg class="neu-accordion-icon" width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+        </button>
+
+        <div class="neu-accordion-content">
+            @if($cleanerPerformance->count() > 0)
+            <div class="neu-card" style="margin-bottom: 16px;">
+                <div class="card-header-actions">
+                    <div>
+                        <h2 class="card-title">Prestatie Overzicht</h2>
+                        <p style="color: var(--neu-text-secondary); font-size: 14px; margin-top: 4px;">Laatste 7 dagen</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px;">
+                    @foreach($cleanerPerformance as $stat)
+                    <div class="neu-widget" style="margin-bottom: 16px;">
+                        <div class="widget-body" style="padding: 20px;">
+                            <!-- Cleaner Name and Overall Performance -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                                <div>
+                                    <h4 style="font-size: 18px; font-weight: 600; color: var(--neu-text-primary); margin-bottom: 4px;">
+                                        {{ $stat['cleaner']->user->name }}
+                                    </h4>
+                                    <p style="color: var(--neu-text-secondary); font-size: 14px;">
+                                        {{ $stat['total_tasks'] }} taken voltooid
+                                    </p>
+                                </div>
+                                <div style="text-align: right;">
+                                    @if($stat['performance'] === 'faster')
+                                        <span class="neu-badge success" style="font-size: 16px; padding: 8px 16px;">
+                                            {{ abs($stat['variance_minutes']) }}min sneller
+                                        </span>
+                                    @elseif($stat['performance'] === 'slower')
+                                        <span class="neu-badge danger" style="font-size: 16px; padding: 8px 16px;">
+                                            {{ $stat['variance_minutes'] }}min langzamer
+                                        </span>
+                                    @else
+                                        <span class="neu-badge" style="font-size: 16px; padding: 8px 16px;">
+                                            Exact op tijd
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Statistics Grid -->
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                                <div style="padding: 12px; background: var(--neu-bg-light); border-radius: 10px;">
+                                    <div style="font-size: 12px; color: var(--neu-text-secondary); margin-bottom: 4px;">Gepland Totaal</div>
+                                    <div style="font-size: 18px; font-weight: 600; color: var(--neu-text-primary);">
+                                        {{ $stat['total_planned_minutes'] }}min
+                                    </div>
+                                </div>
+
+                                <div style="padding: 12px; background: var(--neu-bg-light); border-radius: 10px;">
+                                    <div style="font-size: 12px; color: var(--neu-text-secondary); margin-bottom: 4px;">Werkelijk Totaal</div>
+                                    <div style="font-size: 18px; font-weight: 600; color: var(--neu-text-primary);">
+                                        {{ $stat['total_actual_minutes'] }}min
+                                    </div>
+                                </div>
+
+                                <div style="padding: 12px; background: var(--neu-bg-light); border-radius: 10px;">
+                                    <div style="font-size: 12px; color: var(--neu-text-secondary); margin-bottom: 4px;">Verschil</div>
+                                    <div style="font-size: 18px; font-weight: 600; color: {{ $stat['variance_minutes'] < 0 ? '#10b981' : '#ef4444' }};">
+                                        {{ $stat['variance_minutes'] > 0 ? '+' : '' }}{{ $stat['variance_minutes'] }}min
+                                    </div>
+                                </div>
+
+                                <div style="padding: 12px; background: var(--neu-bg-light); border-radius: 10px;">
+                                    <div style="font-size: 12px; color: var(--neu-text-secondary); margin-bottom: 4px;">Percentage</div>
+                                    <div style="font-size: 18px; font-weight: 600; color: {{ $stat['variance_percent'] < 0 ? '#10b981' : '#ef4444' }};">
+                                        {{ $stat['variance_percent'] > 0 ? '+' : '' }}{{ $stat['variance_percent'] }}%
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Task Breakdown -->
+                            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="width: 12px; height: 12px; background: #10b981; border-radius: 50%;"></span>
+                                    <span style="font-size: 14px; color: var(--neu-text-secondary);">
+                                        {{ $stat['faster_count'] }} sneller
+                                    </span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="width: 12px; height: 12px; background: #ef4444; border-radius: 50%;"></span>
+                                    <span style="font-size: 14px; color: var(--neu-text-secondary);">
+                                        {{ $stat['slower_count'] }} langzamer
+                                    </span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="width: 12px; height: 12px; background: #6b7280; border-radius: 50%;"></span>
+                                    <span style="font-size: 14px; color: var(--neu-text-secondary);">
+                                        {{ $stat['exact_count'] }} exact
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @else
+            <div class="neu-empty-state">
+                <div class="empty-icon">
+                    <svg width="48" height="48" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                    </svg>
+                </div>
+                <div class="empty-title">Geen voltooide taken</div>
+                <div class="empty-message">Er zijn geen voltooide taken in de afgelopen 7 dagen. Schoonmakers moeten hun taken voltooien om prestaties te kunnen analyseren.</div>
+            </div>
+            @endif
         </div>
     </div>
 </div>
@@ -750,6 +916,123 @@ window.deleteRoom = function(roomId) {
         } else {
             showToast('Er is een fout opgetreden. Probeer opnieuw.', 'error', 5000);
         }
+    });
+};
+
+// Booking delete functions
+window.confirmDeleteBooking = function(button) {
+    const bookingId = button.getAttribute('data-booking-id');
+    const guestName = button.getAttribute('data-guest-name');
+
+    if (confirm(`Weet je zeker dat je de boeking voor ${guestName} wilt verwijderen?\n\nDit kan niet ongedaan worden gemaakt.`)) {
+        deleteBooking(bookingId);
+    }
+};
+
+window.deleteBooking = function(bookingId) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+    fetch(`/owner/bookings/${bookingId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showToast(data.message || 'Boeking verwijderd.', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showToast(data.message || 'Fout bij verwijderen boeking.', 'error', 5000);
+        }
+    })
+    .catch(error => {
+        console.error('Delete error:', error);
+        showToast('Er is een fout opgetreden. Probeer opnieuw.', 'error', 5000);
+    });
+};
+
+// Cleaner edit function
+window.editCleaner = function(button) {
+    const cleanerId = button.getAttribute('data-cleaner-id');
+    const cleanerName = button.getAttribute('data-cleaner-name');
+    const cleanerEmail = button.getAttribute('data-cleaner-email');
+    const cleanerPhone = button.getAttribute('data-cleaner-phone');
+    const cleanerAvailability = button.getAttribute('data-cleaner-availability');
+
+    const form = document.getElementById('cleanerEditForm');
+    if (!form) {
+        console.error('Cleaner edit form not found');
+        return;
+    }
+    form.action = `/owner/cleaners/${cleanerId}`;
+
+    document.getElementById('edit_cleaner_name').value = cleanerName || '';
+    document.getElementById('edit_cleaner_email').value = cleanerEmail || '';
+    document.getElementById('edit_cleaner_phone').value = cleanerPhone || '';
+
+    // Set availability checkboxes
+    const availabilityDays = cleanerAvailability ? cleanerAvailability.split(',').map(Number) : [];
+    document.querySelectorAll('#edit-availability-container .availability-checkbox').forEach(checkbox => {
+        const day = parseInt(checkbox.getAttribute('data-day'));
+        checkbox.checked = availabilityDays.includes(day);
+    });
+
+    window.openModal('cleanerEditModal');
+};
+
+// Cleaner delete functions
+window.confirmDeleteCleaner = function(button) {
+    const cleanerId = button.getAttribute('data-cleaner-id');
+    const cleanerName = button.getAttribute('data-cleaner-name');
+
+    if (confirm(`Weet je zeker dat je ${cleanerName} wilt verwijderen?\n\nDit kan niet ongedaan worden gemaakt.`)) {
+        deleteCleaner(cleanerId);
+    }
+};
+
+window.deleteCleaner = function(cleanerId) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+    fetch(`/owner/cleaners/${cleanerId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showToast(data.message || 'Schoonmaker verwijderd.', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showToast(data.message || 'Fout bij verwijderen schoonmaker.', 'error', 5000);
+        }
+    })
+    .catch(error => {
+        console.error('Delete error:', error);
+        showToast('Er is een fout opgetreden. Probeer opnieuw.', 'error', 5000);
     });
 };
 
@@ -917,7 +1200,9 @@ document.addEventListener('DOMContentLoaded', function() {
 @include('owner.panels.booking-create')
 @include('owner.panels.booking-edit')
 @include('owner.panels.cleaner-create')
+@include('owner.panels.cleaner-edit')
 @include('owner.panels.issue-create')
+@include('owner.panels.planner-modal')
 
 {{-- Toast Notification --}}
 <div id="toast" class="toast" style="display: none;">

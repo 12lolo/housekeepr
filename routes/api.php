@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\CleaningTaskController;
+use App\Http\Controllers\TestController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -14,7 +15,7 @@ Route::post('/login', function (Request $request) {
 
     $user = \App\Models\User::where('email', $request->email)->first();
 
-    if (!$user || !\Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+    if (! $user || ! \Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
         return response()->json(['message' => 'Invalid credentials'], 401);
     }
 
@@ -23,7 +24,7 @@ Route::post('/login', function (Request $request) {
     return response()->json([
         'user' => $user,
         'token' => $token,
-        'token_type' => 'Bearer'
+        'token_type' => 'Bearer',
     ]);
 });
 
@@ -37,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Logout
     Route::post('/logout', function (Request $request) {
         $request->user()->currentAccessToken()->delete();
+
         return response()->json(['message' => 'Logged out successfully']);
     });
 
@@ -50,4 +52,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cleaning-tasks/{cleaningTask}/start', [CleaningTaskController::class, 'start']);
     Route::post('/cleaning-tasks/{cleaningTask}/stop', [CleaningTaskController::class, 'stop']);
     Route::post('/cleaning-tasks/{cleaningTask}/complete', [CleaningTaskController::class, 'complete']);
+});
+
+// Testing/Diagnostic routes (protected by testing token)
+Route::middleware('testing.token')->prefix('test')->group(function () {
+    Route::get('/health', [TestController::class, 'health']);
+    Route::get('/database', [TestController::class, 'database']);
+    Route::get('/logs', [TestController::class, 'logs']);
+    Route::get('/config', [TestController::class, 'config']);
+    Route::get('/artisan', [TestController::class, 'artisan']);
+    Route::post('/booking', [TestController::class, 'testBooking']);
+    Route::post('/tinker', [TestController::class, 'tinker']); // Disabled in production by default
 });

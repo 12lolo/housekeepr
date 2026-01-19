@@ -13,28 +13,33 @@ class EnsureDayCapacities extends Command
      *
      * @var string
      */
-    protected $signature = 'housekeepr:ensure-capacities {--days=60 : Number of days into the future}';
+    protected $signature = 'housekeepr:ensure-capacities {hotel_id? : The ID of the hotel (optional, processes all if not provided)} {--days=60 : Number of days into the future} {--past-days=7 : Number of days into the past}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Ensure day capacities exist for all hotels for the next N days';
 
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
         $days = (int) $this->option('days');
+        $pastDays = (int) $this->option('past-days');
+        $hotelId = $this->argument('hotel_id');
 
-        $this->info("Ensuring day capacities for the next {$days} days...");
+        if ($hotelId) {
+            $hotel = Hotel::find($hotelId);
+            if (! $hotel) {
+                $this->error("Hotel with ID {$hotelId} not found!");
 
-        $hotels = Hotel::all();
+                return 1;
+            }
+            $this->info("Ensuring day capacities for {$hotel->name} ({$pastDays} days past to {$days} days future)...");
+            $hotels = collect([$hotel]);
+        } else {
+            $this->info("Ensuring day capacities for ALL hotels ({$pastDays} days past to {$days} days future)...");
+            $hotels = Hotel::all();
+        }
 
         if ($hotels->isEmpty()) {
             $this->warn('No hotels found');
+
             return 1;
         }
 
@@ -52,22 +57,32 @@ class EnsureDayCapacities extends Command
                 $defaultCapacity = 1;
             }
 
+            // Create capacities for past days
+            for ($i = -$pastDays; $i < 0; $i++) {
+                $date = now()->addDays($i)->toDateString();
+
+                try {
+                    DayCapacity::firstOrCreate(
+                        ['hotel_id' => $hotel->id, 'date' => $date],
+                        ['capacity' => $defaultCapacity]
+                    );
+                    $created++;
+                } catch (\Exception $e) {
+                    $skipped++;
+                }
+            }
+
+            // Create capacities for future days
             for ($i = 0; $i < $days; $i++) {
                 $date = now()->addDays($i)->toDateString();
 
-                // Check if capacity already exists
-                $exists = DayCapacity::where('hotel_id', $hotel->id)
-                    ->where('date', $date)
-                    ->exists();
-
-                if (!$exists) {
-                    DayCapacity::create([
-                        'hotel_id' => $hotel->id,
-                        'date' => $date,
-                        'capacity' => $defaultCapacity,
-                    ]);
+                try {
+                    DayCapacity::firstOrCreate(
+                        ['hotel_id' => $hotel->id, 'date' => $date],
+                        ['capacity' => $defaultCapacity]
+                    );
                     $created++;
-                } else {
+                } catch (\Exception $e) {
                     $skipped++;
                 }
             }
@@ -76,7 +91,7 @@ class EnsureDayCapacities extends Command
         }
 
         $this->newLine();
-        $this->info("✅ Complete!");
+        $this->info('✅ Complete!');
         $this->info("   Created: {$created} new capacity entries");
         $this->info("   Skipped: {$skipped} existing entries");
 

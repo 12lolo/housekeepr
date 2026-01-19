@@ -5,14 +5,14 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasRoles, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +22,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
         'role',
         'status',
@@ -96,6 +97,24 @@ class User extends Authenticatable
     {
         return in_array($this->role, ['owner', 'authed-user']);
     }
+
+    /**
+     * Get the hotel associated with this user (for owners and cleaners).
+     * Returns null if user has no associated hotel.
+     */
+    public function getHotel(): ?Hotel
+    {
+        if ($this->isOwner() || $this->isAuthedUser()) {
+            return $this->hotel;
+        }
+
+        if ($this->isCleaner() && $this->cleaner) {
+            return $this->cleaner->hotel;
+        }
+
+        return null;
+    }
+
     // Status checking methods
     public function isActive(): bool
     {
@@ -117,5 +136,16 @@ class User extends Authenticatable
         // Only active users can perform actions (create, edit, delete)
         // Deactivated users can only view (navigate dashboard)
         return $this->status === 'active';
+    }
+
+    /**
+     * Get the system user ID for automated operations.
+     * Returns 1 if exists, otherwise null.
+     */
+    public static function getSystemUserId(): ?int
+    {
+        $systemUser = static::where('role', 'admin')->first();
+
+        return $systemUser?->id ?? 1; // Fallback to ID 1 if no admin exists
     }
 }

@@ -1,19 +1,20 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\OwnerController as AdminOwnerController;
-use App\Http\Controllers\Admin\AuditLogController;
-use App\Http\Controllers\Owner\DashboardController as OwnerDashboardController;
+use App\Http\Controllers\Cleaner\DashboardController as CleanerDashboardController;
+use App\Http\Controllers\Cleaner\IssueController as CleanerIssueController;
+use App\Http\Controllers\Cleaner\TaskController;
 use App\Http\Controllers\Owner\BookingController;
-use App\Http\Controllers\Owner\RoomController;
 use App\Http\Controllers\Owner\CleanerController as OwnerCleanerController;
 use App\Http\Controllers\Owner\CleaningTaskController;
+use App\Http\Controllers\Owner\DashboardController as OwnerDashboardController;
 use App\Http\Controllers\Owner\DayCapacityController;
 use App\Http\Controllers\Owner\IssueController as OwnerIssueController;
-use App\Http\Controllers\Cleaner\DashboardController as CleanerDashboardController;
-use App\Http\Controllers\Cleaner\TaskController;
-use App\Http\Controllers\Cleaner\IssueController as CleanerIssueController;
+use App\Http\Controllers\Owner\PlannerController;
+use App\Http\Controllers\Owner\RoomController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect home to login
@@ -25,7 +26,7 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     $user = auth()->user();
 
-    return match($user->role) {
+    return match ($user->role) {
         'admin' => redirect()->route('admin.dashboard'),
         'owner', 'authed-user' => redirect()->route('owner.dashboard'),
         'cleaner' => redirect()->route('cleaner.dashboard'),
@@ -42,6 +43,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::delete('/owners/{owner}', [AdminOwnerController::class, 'destroy'])->name('owners.destroy');
     Route::post('/owners/{owner}/deactivate', [AdminOwnerController::class, 'deactivate'])->name('owners.deactivate');
     Route::post('/owners/{owner}/activate', [AdminOwnerController::class, 'activate'])->name('owners.activate');
+
+    // Audit log
+    Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit-log');
 });
 
 // Owner Portal - Setup routes (no email verification required)
@@ -68,6 +72,8 @@ Route::middleware(['auth', 'verified', 'role:owner,authed-user', 'owner.active']
     Route::get('/cleaners/create', [OwnerCleanerController::class, 'create'])->name('cleaners.create');
     Route::post('/cleaners', [OwnerCleanerController::class, 'store'])->name('cleaners.store');
     Route::get('/cleaners/{cleaner}', [OwnerCleanerController::class, 'show'])->name('cleaners.show');
+    Route::put('/cleaners/{cleaner}', [OwnerCleanerController::class, 'update'])->name('cleaners.update');
+    Route::delete('/cleaners/{cleaner}', [OwnerCleanerController::class, 'destroy'])->name('cleaners.destroy');
     Route::post('/cleaners/{cleaner}/deactivate', [OwnerCleanerController::class, 'deactivate'])->name('cleaners.deactivate');
     Route::post('/cleaners/{cleaner}/activate', [OwnerCleanerController::class, 'activate'])->name('cleaners.activate');
 
@@ -87,7 +93,11 @@ Route::middleware(['auth', 'verified', 'role:owner,authed-user', 'owner.active']
 
     // Reports
     Route::get('/reports/daily', [App\Http\Controllers\Owner\ReportController::class, 'dailyOverview'])->name('reports.daily');
+    Route::get('/reports/cleaner-performance', [App\Http\Controllers\Owner\ReportController::class, 'cleanerPerformance'])->name('reports.cleaner-performance');
     Route::post('/reports/export-csv', [App\Http\Controllers\Owner\ReportController::class, 'exportCsv'])->name('reports.export-csv');
+
+    // Manual planning trigger
+    Route::post('/planner/run', [PlannerController::class, 'runPlanner'])->name('planner.run');
 });
 
 // Cleaner Portal (mobile-first)

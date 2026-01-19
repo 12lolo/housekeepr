@@ -56,7 +56,9 @@ class BookingController extends Controller
 
         $validated = $request->validate([
             'room_id' => 'required|exists:rooms,id',
-            'check_in_datetime' => 'required|date|after:now',
+            'guest_name' => 'required|string|max:255',
+            'check_in' => 'required|date|after_or_equal:today',
+            'check_out' => 'required|date|after:check_in',
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -70,6 +72,51 @@ class BookingController extends Controller
             abort(403, 'Unauthorized access to this room');
         }
 
+        // Check for overlapping bookings (double-booking prevention)
+        $checkInDate = \Carbon\Carbon::parse($validated['check_in']);
+        $checkOutDate = \Carbon\Carbon::parse($validated['check_out']);
+
+        $overlappingBooking = Booking::where('room_id', $validated['room_id'])
+            ->where(function ($query) use ($checkInDate, $checkOutDate) {
+                $query->where(function ($q) use ($checkInDate) {
+                    // New booking starts during existing booking
+                    $q->whereDate('check_in', '<=', $checkInDate)
+                        ->whereDate('check_out', '>', $checkInDate);
+                })->orWhere(function ($q) use ($checkOutDate) {
+                    // New booking ends during existing booking
+                    $q->whereDate('check_in', '<', $checkOutDate)
+                        ->whereDate('check_out', '>=', $checkOutDate);
+                })->orWhere(function ($q) use ($checkInDate, $checkOutDate) {
+                    // New booking completely contains existing booking
+                    $q->whereDate('check_in', '>=', $checkInDate)
+                        ->whereDate('check_out', '<=', $checkOutDate);
+                });
+            })
+            ->exists();
+
+        if ($overlappingBooking) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Deze kamer is al geboekt voor de geselecteerde periode.',
+                ], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['check_in' => 'Deze kamer is al geboekt voor de geselecteerde periode.']);
+        }
+
+        // Create datetime fields from dates and room times
+
+        // Use room's check-in and check-out times
+        $checkInTime = $room->checkin_time ?? '15:00';
+        $checkOutTime = $room->checkout_time ?? '11:00';
+
+        $validated['check_in_datetime'] = $checkInDate->format('Y-m-d').' '.$checkInTime;
+        $validated['check_out_datetime'] = $checkOutDate->format('Y-m-d').' '.$checkOutTime;
+
         $booking = Booking::create($validated);
 
         activity()
@@ -77,8 +124,16 @@ class BookingController extends Controller
             ->causedBy($user)
             ->log('Boeking aangemaakt');
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Boeking succesvol aangemaakt.',
+                'booking' => $booking->load('room'),
+            ]);
+        }
+
         return redirect()
-            ->route('owner.bookings.index')
+            ->route('owner.dashboard')
             ->with('success', 'Boeking succesvol aangemaakt. Schoonmaaktaak wordt automatisch gepland.');
     }
 
@@ -141,7 +196,9 @@ class BookingController extends Controller
 
         $validated = $request->validate([
             'room_id' => 'required|exists:rooms,id',
-            'check_in_datetime' => 'required|date',
+            'guest_name' => 'required|string|max:255',
+            'check_in' => 'required|date',
+            'check_out' => 'required|date|after:check_in',
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -151,12 +208,65 @@ class BookingController extends Controller
             abort(403);
         }
 
+        // Check for overlapping bookings (double-booking prevention)
+        $checkInDate = \Carbon\Carbon::parse($validated['check_in']);
+        $checkOutDate = \Carbon\Carbon::parse($validated['check_out']);
+
+        $overlappingBooking = Booking::where('room_id', $validated['room_id'])
+            ->where('id', '!=', $booking->id) // Exclude current booking
+            ->where(function ($query) use ($checkInDate, $checkOutDate) {
+                $query->where(function ($q) use ($checkInDate) {
+                    // New booking starts during existing booking
+                    $q->whereDate('check_in', '<=', $checkInDate)
+                        ->whereDate('check_out', '>', $checkInDate);
+                })->orWhere(function ($q) use ($checkOutDate) {
+                    // New booking ends during existing booking
+                    $q->whereDate('check_in', '<', $checkOutDate)
+                        ->whereDate('check_out', '>=', $checkOutDate);
+                })->orWhere(function ($q) use ($checkInDate, $checkOutDate) {
+                    // New booking completely contains existing booking
+                    $q->whereDate('check_in', '>=', $checkInDate)
+                        ->whereDate('check_out', '<=', $checkOutDate);
+                });
+            })
+            ->exists();
+
+        if ($overlappingBooking) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Deze kamer is al geboekt voor de geselecteerde periode.',
+                ], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['check_in' => 'Deze kamer is al geboekt voor de geselecteerde periode.']);
+        }
+
+        // Update datetime fields
+
+        $checkInTime = $room->checkin_time ?? '15:00';
+        $checkOutTime = $room->checkout_time ?? '11:00';
+
+        $validated['check_in_datetime'] = $checkInDate->format('Y-m-d').' '.$checkInTime;
+        $validated['check_out_datetime'] = $checkOutDate->format('Y-m-d').' '.$checkOutTime;
+
         $booking->update($validated);
 
         activity()
             ->performedOn($booking)
             ->causedBy($user)
             ->log('Boeking bijgewerkt');
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Boeking bijgewerkt.',
+                'booking' => $booking->load('room'),
+            ]);
+        }
 
         // Trigger replanning if check_in_datetime changed
         if ($booking->wasChanged('check_in_datetime')) {
@@ -171,7 +281,7 @@ class BookingController extends Controller
     /**
      * Remove the specified booking from storage.
      */
-    public function destroy(Booking $booking)
+    public function destroy(Request $request, Booking $booking)
     {
         Gate::authorize('manage-hotel');
 
@@ -183,15 +293,22 @@ class BookingController extends Controller
             abort(403);
         }
 
+        $booking->delete();
+
         activity()
             ->performedOn($booking)
             ->causedBy($user)
             ->log('Boeking verwijderd');
 
-        $booking->delete();
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Boeking verwijderd.',
+            ]);
+        }
 
         return redirect()
-            ->route('owner.bookings.index')
+            ->route('owner.dashboard')
             ->with('success', 'Boeking verwijderd.');
     }
 }

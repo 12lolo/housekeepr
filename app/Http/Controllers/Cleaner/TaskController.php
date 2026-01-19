@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\CleaningTask;
 use App\Models\TaskLog;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class TaskController extends Controller
 {
@@ -19,7 +17,7 @@ class TaskController extends Controller
         $user = auth()->user();
         $cleaner = $user->cleaner;
 
-        if (!$cleaner) {
+        if (! $cleaner) {
             abort(403, 'No cleaner profile found');
         }
 
@@ -93,7 +91,7 @@ class TaskController extends Controller
             ->causedBy($user)
             ->log('Taak gestart');
 
-        return back()->with('success', 'Taak gestart om ' . now()->format('H:i'));
+        return back()->with('success', 'Taak gestart om '.now()->format('H:i'));
     }
 
     /**
@@ -114,6 +112,12 @@ class TaskController extends Controller
             return back()->with('error', 'Deze taak is niet bezig.');
         }
 
+        // Check if already stopped (prevent multiple stops without resume)
+        $lastLog = $task->taskLogs()->latest('timestamp')->first();
+        if ($lastLog && $lastLog->action === 'stopped') {
+            return back()->with('error', 'Deze taak is al gepauzeerd. Start opnieuw om door te gaan.');
+        }
+
         // Log the stop action
         TaskLog::create([
             'cleaning_task_id' => $task->id,
@@ -126,7 +130,7 @@ class TaskController extends Controller
             ->causedBy($user)
             ->log('Taak gestopt (pauze)');
 
-        return back()->with('success', 'Taak gepauzeerd om ' . now()->format('H:i'));
+        return back()->with('success', 'Taak gepauzeerd om '.now()->format('H:i'));
     }
 
     /**
@@ -148,7 +152,7 @@ class TaskController extends Controller
         }
 
         // Verify start time exists
-        if (!$task->actual_start_time) {
+        if (! $task->actual_start_time) {
             return back()->with('error', 'Geen starttijd gevonden voor deze taak.');
         }
 
@@ -178,7 +182,7 @@ class TaskController extends Controller
             ->causedBy($user)
             ->log('Taak voltooid');
 
-        return back()->with('success', 'Taak voltooid! Duur: ' . $actualDuration . ' minuten.');
+        return back()->with('success', 'Taak voltooid! Duur: '.$actualDuration.' minuten.');
     }
 
     /**

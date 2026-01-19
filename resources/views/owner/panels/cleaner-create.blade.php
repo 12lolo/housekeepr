@@ -45,8 +45,35 @@
                         id="cleaner_phone"
                         name="phone"
                         class="neu-input"
-                        placeholder="06-12345678"
+                        placeholder="06-12345678 of +31612345678"
+                        pattern="[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}"
+                        inputmode="tel"
+                        title="Voer een geldig telefoonnummer in"
                     >
+                    <small style="color: var(--text-muted, #6b7280); font-size: 0.75rem; margin-top: 0.25rem; display: block;">
+                        Formaten: 06-12345678, +31612345678, (06)12345678
+                    </small>
+                </div>
+
+                <div class="neu-form-group">
+                    <label class="neu-label">Beschikbare dagen *</label>
+                    <small style="color: var(--text-muted, #6b7280); font-size: 0.75rem; margin-bottom: 0.75rem; display: block;">
+                        Selecteer de dagen waarop deze schoonmaker beschikbaar is
+                    </small>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem;">
+                        @foreach(['Maandag' => 1, 'Dinsdag' => 2, 'Woensdag' => 3, 'Donderdag' => 4, 'Vrijdag' => 5, 'Zaterdag' => 6, 'Zondag' => 0] as $dayName => $dayNum)
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.75rem; border-radius: 8px; background: var(--neu-bg, #e0e5ec); transition: all 0.2s;">
+                                <input
+                                    type="checkbox"
+                                    name="availability[]"
+                                    value="{{ $dayNum }}"
+                                    style="width: 18px; height: 18px; cursor: pointer;"
+                                    {{ in_array($dayNum, [1, 2, 3, 4, 5]) ? 'checked' : '' }}
+                                >
+                                <span style="font-size: 0.875rem; font-weight: 500;">{{ $dayName }}</span>
+                            </label>
+                        @endforeach
+                    </div>
                 </div>
 
                 <div class="neu-modal-footer">

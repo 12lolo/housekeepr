@@ -86,6 +86,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Testing Token
+    |--------------------------------------------------------------------------
+    |
+    | This token is used to protect test/diagnostic endpoints. Set a secure
+    | random string in your .env file. Leave empty to disable test routes.
+    |
+    */
+
+    'testing_token' => env('TESTING_TOKEN'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |

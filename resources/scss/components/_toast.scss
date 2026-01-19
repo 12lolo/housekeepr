@@ -1,0 +1,129 @@
+// Toast Notifications
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  min-width: 300px;
+  max-width: 500px;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transform: translateX(400px);
+  transition: all 0.3s ease;
+
+  &.show {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .toast-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .toast-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 14px;
+  }
+
+  .toast-message {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  // Success toast
+  &.toast-success {
+    background: #10b981;
+    color: white;
+
+    .toast-icon {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+
+  // Error toast
+  &.toast-error {
+    background: #ef4444;
+    color: white;
+
+    .toast-icon {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+
+  // Info toast
+  &.toast-info {
+    background: #3b82f6;
+    color: white;
+
+    .toast-icon {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+
+  // Dark mode support
+  @media (prefers-color-scheme: dark) {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+}
+
+// Form loading state
+.form-loading {
+  pointer-events: none;
+  opacity: 0.6;
+
+  button[type="submit"] {
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      width: 16px;
+      height: 16px;
+      margin-top: -8px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Error text for validation
+.error-text {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #ef4444;
+
+  @media (prefers-color-scheme: dark) {
+    color: #fca5a5;
+  }
+}
+
+// Input error state
+.neu-input.has-error {
+  border-color: #ef4444 !important;
+
+  @media (prefers-color-scheme: dark) {
+    border-color: #fca5a5 !important;
+  }
+}
