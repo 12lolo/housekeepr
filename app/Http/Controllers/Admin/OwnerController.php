@@ -209,13 +209,20 @@ class OwnerController extends Controller
     /**
      * Deactivate owner (UC-A7).
      */
-    public function deactivate(User $owner)
+    public function deactivate(Request $request, User $owner)
     {
         if ($owner->role !== 'owner') {
             abort(404);
         }
 
         if ($owner->status === 'deactivated') {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Eigenaar is al gedeactiveerd.',
+                ], 400);
+            }
+
             return back()->with('error', 'Eigenaar is al gedeactiveerd.');
         }
 
@@ -227,13 +234,27 @@ class OwnerController extends Controller
             ->event('updated')
             ->log('Eigenaar gedeactiveerd');
 
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Eigenaar gedeactiveerd. Kan niet meer inloggen.',
+                'owner' => [
+                    'id' => $owner->id,
+                    'name' => $owner->name,
+                    'email' => $owner->email,
+                    'status' => $owner->status,
+                    'hotels_count' => $owner->hotels()->count(),
+                ],
+            ]);
+        }
+
         return back()->with('success', 'Eigenaar gedeactiveerd. Kan niet meer inloggen.');
     }
 
     /**
      * Activate owner (UC-A8).
      */
-    public function activate(User $owner)
+    public function activate(Request $request, User $owner)
     {
         if ($owner->role !== 'owner') {
             abort(404);
@@ -251,13 +272,27 @@ class OwnerController extends Controller
             ->event('updated')
             ->log('Eigenaar geactiveerd');
 
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Eigenaar geactiveerd. Kan weer inloggen.',
+                'owner' => [
+                    'id' => $owner->id,
+                    'name' => $owner->name,
+                    'email' => $owner->email,
+                    'status' => $owner->status,
+                    'hotels_count' => $owner->hotels()->count(),
+                ],
+            ]);
+        }
+
         return back()->with('success', 'Eigenaar geactiveerd. Kan weer inloggen.');
     }
 
     /**
      * Remove the specified owner from storage.
      */
-    public function destroy(User $owner)
+    public function destroy(Request $request, User $owner)
     {
         if ($owner->role !== 'owner') {
             abort(404);
@@ -269,7 +304,16 @@ class OwnerController extends Controller
             ->event('deleted')
             ->log('Eigenaar verwijderd: '.($owner->name ?? $owner->email));
 
+        $ownerId = $owner->id;
         $owner->delete();
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Eigenaar verwijderd.',
+                'owner_id' => $ownerId,
+            ]);
+        }
 
         return redirect()
             ->route('admin.dashboard')

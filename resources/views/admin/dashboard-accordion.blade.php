@@ -181,28 +181,28 @@
                                     <td>
                                         <div class="action-buttons" style="display: flex; gap: 0.5rem;">
                                             @if($owner->status === 'active')
-                                                <form action="{{ route('admin.owners.deactivate', $owner) }}" method="POST" class="d-inline">
+                                                <form action="{{ route('admin.owners.deactivate', $owner) }}" method="POST" class="d-inline" data-owner-form="deactivate">
                                                     @csrf
-                                                    <button type="submit" class="action-btn" style="color: #f59e0b;" aria-label="Deactiveren" onclick="return confirm('Weet je zeker dat je deze eigenaar wilt deactiveren? De eigenaar kan nog inloggen en navigeren, maar kan geen wijzigingen maken.')">
+                                                    <button type="button" class="action-btn" style="color: #f59e0b;" aria-label="Deactiveren" onclick="confirmDeactivateOwner(event, '{{ $owner->name ?? $owner->email }}')">
                                                         <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                                                             <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
                                                         </svg>
                                                     </button>
                                                 </form>
                                             @else
-                                                <form action="{{ route('admin.owners.activate', $owner) }}" method="POST" class="d-inline">
+                                                <form action="{{ route('admin.owners.activate', $owner) }}" method="POST" class="d-inline" data-owner-form="activate">
                                                     @csrf
-                                                    <button type="submit" class="action-btn" style="color: #10b981;" aria-label="Activeren" onclick="return confirm('Weet je zeker dat je deze eigenaar wilt activeren?')">
+                                                    <button type="button" class="action-btn" style="color: #10b981;" aria-label="Activeren" onclick="confirmActivateOwner(event, '{{ $owner->name ?? $owner->email }}')">
                                                         <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                                                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                                         </svg>
                                                     </button>
                                                 </form>
                                             @endif
-                                            <form action="{{ route('admin.owners.destroy', $owner) }}" method="POST" class="d-inline">
+                                            <form action="{{ route('admin.owners.destroy', $owner) }}" method="POST" class="d-inline" data-owner-form="delete">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="action-btn danger" aria-label="Verwijderen" onclick="return confirm('Weet je zeker dat je deze eigenaar definitief wilt verwijderen? Dit kan niet ongedaan worden gemaakt!')">
+                                                <button type="button" class="action-btn danger" aria-label="Verwijderen" onclick="confirmDeleteOwner(event, '{{ $owner->name ?? $owner->email }}')">
                                                     <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
                                                     </svg>
@@ -364,6 +364,54 @@
     </div>
 </div>
 
+{{-- Confirmation Modal is provided by app-neu.blade.php layout --}}
+
+<style>
+/* Danger button style */
+.neu-button-danger {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.neu-button-danger:hover {
+    background: #dc2626;
+}
+
+.neu-button-danger:active {
+    background: #b91c1c;
+}
+
+/* Compact confirmation modal styles */
+.confirm-modal-compact {
+    max-width: 450px;
+}
+
+.confirm-modal-header {
+    padding: 1rem 1.5rem;
+}
+
+.confirm-modal-body {
+    padding: 1rem 1.5rem;
+}
+
+.confirm-modal-footer {
+    padding: 1rem 1.5rem;
+    gap: 0.75rem;
+}
+
+/* Dark mode compatible close button hover */
+.confirm-modal-close:hover {
+    opacity: 0.7;
+    background: transparent !important;
+}
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const accordionHeaders = document.querySelectorAll('.neu-accordion-header');
@@ -424,6 +472,316 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Confirmation Modal System is provided by app-neu.blade.php layout
+    // Owner management confirmation helper functions
+    window.confirmDeactivateOwner = function(event, ownerName) {
+        event.preventDefault();
+        const form = event.target.closest('form');
+        const ownerId = form.action.split('/').pop();
+        showConfirmModal(
+            'Eigenaar deactiveren',
+            `Weet je zeker dat je ${ownerName} wilt deactiveren? De eigenaar kan nog inloggen en navigeren, maar kan geen wijzigingen maken.`,
+            'Deactiveren',
+            () => deactivateOwner(form, ownerId, ownerName)
+        );
+    };
+
+    window.deactivateOwner = function(form, ownerId, ownerName) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw { status: response.status, data: data };
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+
+                // Update status badge
+                const row = form.closest('tr');
+                const statusCell = row.querySelector('td:nth-child(4)');
+                statusCell.innerHTML = '<span class="neu-badge danger">Gedeactiveerd</span>';
+
+                // Replace deactivate button with activate button
+                const actionsCell = row.querySelector('td:nth-child(5) .action-buttons');
+                const newForm = document.createElement('form');
+                newForm.action = `/admin/owners/${ownerId}/activate`;
+                newForm.method = 'POST';
+                newForm.className = 'd-inline';
+                newForm.setAttribute('data-owner-form', 'activate');
+                newForm.innerHTML = `
+                    <input type="hidden" name="_token" value="${csrfToken}">
+                    <button type="button" class="action-btn" style="color: #10b981;" onclick="confirmActivateOwner(event, '${ownerName}')">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                `;
+                form.replaceWith(newForm);
+            } else {
+                showToast(data.message, 'error', 5000);
+            }
+        })
+        .catch(error => {
+            console.error('Deactivate error:', error);
+            showToast(error.data?.message || 'Er is een fout opgetreden.', 'error', 5000);
+        });
+    };
+
+    window.confirmActivateOwner = function(event, ownerName) {
+        event.preventDefault();
+        const form = event.target.closest('form');
+        const ownerId = form.action.split('/').pop();
+        showConfirmModal(
+            'Eigenaar activeren',
+            `Weet je zeker dat je ${ownerName} wilt activeren?`,
+            'Activeren',
+            () => activateOwner(form, ownerId, ownerName)
+        );
+    };
+
+    window.activateOwner = function(form, ownerId, ownerName) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw { status: response.status, data: data };
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+
+                // Update status badge
+                const row = form.closest('tr');
+                const statusCell = row.querySelector('td:nth-child(4)');
+                statusCell.innerHTML = '<span class="neu-badge success">Actief</span>';
+
+                // Replace activate button with deactivate button
+                const actionsCell = row.querySelector('td:nth-child(5) .action-buttons');
+                const newForm = document.createElement('form');
+                newForm.action = `/admin/owners/${ownerId}/deactivate`;
+                newForm.method = 'POST';
+                newForm.className = 'd-inline';
+                newForm.setAttribute('data-owner-form', 'deactivate');
+                newForm.innerHTML = `
+                    <input type="hidden" name="_token" value="${csrfToken}">
+                    <button type="button" class="action-btn" style="color: #f59e0b;" onclick="confirmDeactivateOwner(event, '${ownerName}')">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                `;
+                form.replaceWith(newForm);
+            } else {
+                showToast(data.message, 'error', 5000);
+            }
+        })
+        .catch(error => {
+            console.error('Activate error:', error);
+            showToast(error.data?.message || 'Er is een fout opgetreden.', 'error', 5000);
+        });
+    };
+
+    window.confirmDeleteOwner = function(event, ownerName) {
+        event.preventDefault();
+        const form = event.target.closest('form');
+        const ownerId = form.action.split('/').pop();
+        showConfirmModal(
+            'Eigenaar verwijderen',
+            `Weet je zeker dat je ${ownerName} definitief wilt verwijderen? Dit kan niet ongedaan worden gemaakt!`,
+            'Verwijderen',
+            () => deleteOwner(form, ownerId)
+        );
+    };
+
+    window.deleteOwner = function(form, ownerId) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+        fetch(form.action, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw { status: response.status, data: data };
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+
+                // Fade out and remove row
+                const row = form.closest('tr');
+                row.style.opacity = '0';
+                row.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    row.remove();
+
+                    // Check if table is empty
+                    const tbody = document.querySelector('#section-eigenaren tbody');
+                    if (tbody && tbody.querySelectorAll('tr').length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Geen eigenaren gevonden</td></tr>';
+                    }
+                }, 300);
+
+                // Reload to update stats
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showToast(data.message, 'error', 5000);
+            }
+        })
+        .catch(error => {
+            console.error('Delete error:', error);
+            showToast('Er is een fout opgetreden.', 'error', 5000);
+        });
+    };
+
+    // Modal event listeners (ESC and overlay click) are provided by app-neu.blade.php layout
+
+    // Toast notification system
+    window.showToast = function(message, type = 'success', duration = 3000) {
+        // Remove existing toasts
+        const existing = document.querySelector('.toast-notification');
+        if (existing) {
+            existing.remove();
+        }
+
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <span class="toast-icon">
+                    ${type === 'success' ? '✓' : type === 'error' ? '✕' : 'i'}
+                </span>
+                <span class="toast-message">${message}</span>
+            </div>
+        `;
+
+        // Add to body
+        document.body.appendChild(toast);
+
+        // Animate in
+        setTimeout(() => toast.classList.add('show'), 10);
+
+        // Remove after duration
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    };
+
+    // Owner create form submission
+    window.submitOwnerCreateForm = function(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const submitBtn = document.getElementById('ownerSubmitBtn');
+        const cancelBtn = document.getElementById('cancelAddOwnerBtn');
+        const formData = new FormData(form);
+
+        // Disable buttons
+        submitBtn.disabled = true;
+        cancelBtn.disabled = true;
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" class="icon-inline animate-spin"><path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2H4z" clip-rule="evenodd"/></svg> Bezig met versturen...';
+
+        // Clear previous errors
+        document.querySelectorAll('.error-text').forEach(el => {
+            el.style.display = 'none';
+            el.textContent = '';
+        });
+        document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw { status: response.status, data: data };
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            showToast(data.message || 'Uitnodiging verstuurd!', 'success');
+
+            // Close modal
+            document.getElementById('addOwnerModal').classList.remove('active');
+            document.body.style.overflow = '';
+            form.reset();
+
+            // Reload to show updated stats
+            setTimeout(() => window.location.reload(), 1000);
+        })
+        .catch(error => {
+            console.error('Owner create error:', error);
+
+            // Handle validation errors (422)
+            if (error.status === 422 && error.data.errors) {
+                Object.keys(error.data.errors).forEach(field => {
+                    const errorSpan = document.getElementById(`error_${field}`);
+                    const inputField = document.querySelector(`[name="${field}"]`);
+
+                    if (errorSpan && inputField) {
+                        errorSpan.textContent = error.data.errors[field][0];
+                        errorSpan.style.display = 'block';
+                        inputField.classList.add('has-error');
+                    }
+                });
+                showToast('Controleer de formuliervelden', 'error', 5000);
+            } else {
+                showToast(error.data?.message || 'Er is een fout opgetreden.', 'error', 5000);
+            }
+        })
+        .finally(() => {
+            // Re-enable buttons
+            submitBtn.disabled = false;
+            cancelBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        });
+    };
 });
 </script>
 
@@ -439,7 +797,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </button>
         </div>
         <div class="neu-modal-body">
-            <form action="{{ route('admin.owners.store') }}" method="POST" id="addOwnerForm">
+            <form action="{{ route('admin.owners.store') }}" method="POST" id="addOwnerForm" onsubmit="submitOwnerCreateForm(event)">
                 @csrf
 
                 <div class="neu-form-group">
@@ -453,12 +811,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         required
                         autofocus
                     >
+                    <span id="error_email" class="error-text" style="display: none; color: #e53e3e; font-size: 0.875rem; margin-top: 0.25rem;"></span>
                     <small class="neu-hint">De hotel eigenaar ontvangt een uitnodigingsmail en kan dan zelf alle gegevens invullen (naam, hotel, etc.).</small>
                 </div>
 
                 <div class="neu-modal-footer">
                     <button type="button" class="neu-button-secondary" id="cancelAddOwnerBtn" onclick="document.getElementById('addOwnerModal').classList.remove('active'); document.body.style.overflow = ''; document.getElementById('addOwnerForm').reset();">Annuleren</button>
-                    <button type="submit" class="neu-button-primary">
+                    <button type="submit" class="neu-button-primary" id="ownerSubmitBtn">
                         <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" class="icon-inline">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                         </svg>
@@ -472,48 +831,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 @endsection
-
-{{-- Add Owner Modal --}}
-<div class="neu-modal-overlay" id="addOwnerModal">
-    <div class="neu-modal">
-        <div class="neu-modal-header">
-            <h3>Nieuwe Eigenaar Uitnodigen</h3>
-            <button type="button" class="neu-modal-close" id="closeAddOwnerBtn" aria-label="Sluiten" onclick="document.getElementById('addOwnerModal').classList.remove('active'); document.body.style.overflow = '';">
-                <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                </svg>
-            </button>
-        </div>
-        <div class="neu-modal-body">
-            <form action="{{ route('admin.owners.store') }}" method="POST" id="addOwnerForm">
-                @csrf
-
-                <div class="neu-form-group">
-                    <label for="email" class="neu-label">Email Eigenaar</label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        class="neu-input"
-                        placeholder="eigenaar@hotel.nl"
-                        required
-                    >
-                    <small class="neu-hint">Een uitnodigingsmail met tijdelijk wachtwoord wordt naar dit adres gestuurd. De eigenaar vult zelf zijn naam, wachtwoord en hotel in bij eerste login.</small>
-                </div>
-
-                <div class="neu-modal-footer">
-                    <button type="button" class="neu-button-secondary" id="cancelAddOwnerBtn" onclick="document.getElementById('addOwnerModal').classList.remove('active'); document.body.style.overflow = ''; document.getElementById('addOwnerForm').reset();">Annuleren</button>
-                    <button type="submit" class="neu-button-primary">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" class="icon-inline">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                        </svg>
-                        Eigenaar Aanmaken & Uitnodiging Versturen
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 @push('scripts')
 <script>
