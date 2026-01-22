@@ -142,20 +142,21 @@ class PlanTasksCommand extends Command
             $this->stats['replanned']++;
         }
 
-        // Use CleaningScheduler to schedule the booking
+        // Use CleaningScheduler to schedule all bookings for this date
         $scheduler = app(CleaningScheduler::class);
+        $checkInDate = \Carbon\Carbon::parse($booking->check_in_datetime);
 
         try {
-            $task = $scheduler->scheduleBooking($booking);
+            $stats = $scheduler->scheduleForDate($hotel, $checkInDate);
 
-            if ($task) {
-                $this->line("  ✅ Planned task for booking #{$booking->id} (Room {$room->room_number}) → {$task->cleaner->user->name}");
+            // Reload booking to check if task was created
+            $booking->refresh();
 
-                if (! $force) {
-                    $this->stats['planned']++;
-                }
+            if ($booking->cleaningTask) {
+                $this->line("  ✅ Planned task for booking #{$booking->id} (Room {$room->room_number}) → {$booking->cleaningTask->cleaner->user->name}");
+                $this->stats['planned'] += $stats['scheduled'];
             } else {
-                // Scheduler couldn't create task - check why
+                // Check if blocked by issue
                 $blockingIssues = Issue::where('room_id', $room->id)
                     ->where('status', 'open')
                     ->where('impact', 'kan_niet_gebruikt')
@@ -165,7 +166,7 @@ class PlanTasksCommand extends Command
                     $this->warn("  ⚠️  Booking #{$booking->id} (Room {$room->room_number}) - BLOCKED by issue");
                     $this->stats['blocked']++;
                 } else {
-                    $this->warn("  ⚠️  Booking #{$booking->id} - Could not schedule (check issues)");
+                    $this->warn("  ⚠️  Booking #{$booking->id} - Could not schedule (no available cleaners)");
                     $this->stats['errors']++;
                 }
             }
