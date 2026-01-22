@@ -326,7 +326,7 @@
                                 <th>Tijdstip</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="auditLogTableBody">
                             @forelse($auditLogs as $log)
                                 <tr>
                                     <td><strong>{{ $log->causer->name ?? $log->causer->email ?? 'Systeem' }}</strong></td>
@@ -533,6 +533,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     </button>
                 `;
                 form.replaceWith(newForm);
+
+                // Refresh audit log
+                refreshAuditLog();
             } else {
                 showToast(data.message, 'error', 5000);
             }
@@ -601,6 +604,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     </button>
                 `;
                 form.replaceWith(newForm);
+
+                // Refresh audit log
+                refreshAuditLog();
             } else {
                 showToast(data.message, 'error', 5000);
             }
@@ -659,6 +665,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (tbody && tbody.querySelectorAll('tr').length === 0) {
                         tbody.innerHTML = '<tr><td colspan="5" class="text-center">Geen eigenaren gevonden</td></tr>';
                     }
+
+                    // Refresh audit log
+                    refreshAuditLog();
                 }, 300);
             } else {
                 showToast(data.message, 'error', 5000);
@@ -671,6 +680,60 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Modal event listeners (ESC and overlay click) are provided by app-neu.blade.php layout
+
+    // Refresh audit log
+    window.refreshAuditLog = function() {
+        const tbody = document.getElementById('auditLogTableBody');
+        if (!tbody) return;
+
+        fetch('/admin/audit-logs', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.logs) {
+                // Clear existing rows
+                tbody.innerHTML = '';
+
+                if (data.logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Geen audit logs gevonden</td></tr>';
+                    return;
+                }
+
+                // Add new rows
+                data.logs.forEach(log => {
+                    const row = document.createElement('tr');
+
+                    let badgeHtml = '';
+                    if (log.event === 'created') {
+                        badgeHtml = '<span class="neu-badge success">Aangemaakt</span>';
+                    } else if (log.event === 'updated') {
+                        badgeHtml = '<span class="neu-badge warning">Bijgewerkt</span>';
+                    } else if (log.event === 'deleted') {
+                        badgeHtml = '<span class="neu-badge danger">Verwijderd</span>';
+                    } else {
+                        badgeHtml = '<span class="neu-badge" style="background-color: #e5e7eb; color: #6b7280;">Actie</span>';
+                    }
+
+                    row.innerHTML = `
+                        <td><strong>${log.causer_name}</strong></td>
+                        <td>${badgeHtml}</td>
+                        <td>${log.description}</td>
+                        <td>${log.created_at}</td>
+                    `;
+
+                    tbody.appendChild(row);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error refreshing audit log:', error);
+        });
+    };
 
     // Toast notification system
     window.showToast = function(message, type = 'success', duration = 3000) {
@@ -803,6 +866,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     newRow.style.opacity = '1';
                 }, 10);
             }
+
+            // Refresh audit log
+            refreshAuditLog();
         })
         .catch(error => {
             console.error('Owner create error:', error);

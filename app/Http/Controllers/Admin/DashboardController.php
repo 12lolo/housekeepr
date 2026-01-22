@@ -65,4 +65,49 @@ class DashboardController extends Controller
 
         return view('admin.dashboard-accordion', compact('stats', 'recentHotels', 'owners', 'auditLogs', 'causers'));
     }
+
+    /**
+     * Get recent audit logs as JSON for AJAX updates.
+     */
+    public function getAuditLogs(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $query = Activity::with(['causer', 'subject'])
+            ->orderBy('created_at', 'desc');
+
+        // Apply same filters as index method
+        if ($request->filled('user_id')) {
+            $query->where('causer_id', $request->user_id);
+        }
+
+        if ($request->filled('event')) {
+            $query->where('event', $request->event);
+        }
+
+        if ($request->filled('from_date')) {
+            $query->whereDate('created_at', '>=', $request->from_date);
+        }
+
+        if ($request->filled('to_date')) {
+            $query->whereDate('created_at', '<=', $request->to_date);
+        }
+
+        if ($request->filled('search')) {
+            $query->where('description', 'like', '%' . $request->search . '%');
+        }
+
+        $auditLogs = $query->take(50)->get();
+
+        return response()->json([
+            'success' => true,
+            'logs' => $auditLogs->map(function ($log) {
+                return [
+                    'id' => $log->id,
+                    'causer_name' => $log->causer->name ?? $log->causer->email ?? 'Systeem',
+                    'event' => $log->event,
+                    'description' => $log->description,
+                    'created_at' => $log->created_at->format('d-m-Y H:i'),
+                ];
+            }),
+        ]);
+    }
 }

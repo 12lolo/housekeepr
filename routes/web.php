@@ -36,6 +36,7 @@ Route::get('/dashboard', function () {
 // Admin Portal
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/audit-logs', [AdminDashboardController::class, 'getAuditLogs'])->name('audit-logs');
 
     // Owners management - action endpoints only (all UI is on dashboard)
     Route::post('/owners', [AdminOwnerController::class, 'store'])->name('owners.store');
