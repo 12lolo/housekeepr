@@ -308,7 +308,7 @@
                             </svg>
                             Filteren
                         </button>
-                        <button type="button" class="neu-button-secondary" onclick="clearAuditLogFilters()">
+                        <button type="button" id="clearFiltersBtn" class="neu-button-secondary" onclick="clearAuditLogFilters()" style="display: none;">
                             Filters Wissen
                         </button>
                     </div>
@@ -679,9 +679,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Modal event listeners (ESC and overlay click) are provided by app-neu.blade.php layout
 
+    // Check if any filters are active
+    window.checkFiltersActive = function() {
+        const form = document.getElementById('auditLogFilterForm');
+        const formData = new FormData(form);
+        let hasFilters = false;
+
+        for (const [key, value] of formData.entries()) {
+            if (value && value.trim() !== '') {
+                hasFilters = true;
+                break;
+            }
+        }
+
+        const clearBtn = document.getElementById('clearFiltersBtn');
+        if (clearBtn) {
+            clearBtn.style.display = hasFilters ? 'inline-flex' : 'none';
+        }
+    };
+
     // Filter audit log (form submission)
     window.filterAuditLog = function(event) {
         event.preventDefault();
+        checkFiltersActive();
         refreshAuditLog();
     };
 
@@ -689,8 +709,14 @@ document.addEventListener('DOMContentLoaded', function() {
     window.clearAuditLogFilters = function() {
         const form = document.getElementById('auditLogFilterForm');
         form.reset();
+        checkFiltersActive();
         refreshAuditLog();
     };
+
+    // Check on page load if filters are active
+    document.addEventListener('DOMContentLoaded', function() {
+        checkFiltersActive();
+    });
 
     // Refresh audit log with cooldown to prevent excessive requests
     let auditLogCooldown = false;
