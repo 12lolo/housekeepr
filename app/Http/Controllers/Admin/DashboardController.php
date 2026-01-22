@@ -35,7 +35,11 @@ class DashboardController extends Controller
 
         // Filter by causer (user who performed the action)
         if ($request->filled('user_id')) {
-            $query->where('causer_id', $request->user_id);
+            if ($request->user_id === 'system') {
+                $query->whereNull('causer_id');
+            } else {
+                $query->where('causer_id', $request->user_id);
+            }
         }
 
         // Filter by event type
@@ -57,7 +61,11 @@ class DashboardController extends Controller
             $query->where('description', 'like', '%' . $request->search . '%');
         }
 
-        $auditLogs = $query->paginate(50);
+        // Get per_page from request or cookie, default to 50
+        $perPage = $request->input('per_page', $request->cookie('audit_per_page', 50));
+        $perPage = in_array($perPage, [25, 50, 100, 200]) ? $perPage : 50;
+
+        $auditLogs = $query->paginate($perPage);
 
         // Get unique causers for filter dropdown
         $causers = User::whereIn('id', Activity::distinct()->pluck('causer_id'))
@@ -76,7 +84,11 @@ class DashboardController extends Controller
 
         // Apply same filters as index method
         if ($request->filled('user_id')) {
-            $query->where('causer_id', $request->user_id);
+            if ($request->user_id === 'system') {
+                $query->whereNull('causer_id');
+            } else {
+                $query->where('causer_id', $request->user_id);
+            }
         }
 
         if ($request->filled('event')) {
@@ -95,7 +107,11 @@ class DashboardController extends Controller
             $query->where('description', 'like', '%' . $request->search . '%');
         }
 
-        $auditLogs = $query->paginate(50);
+        // Get per_page from request or cookie, default to 50
+        $perPage = $request->input('per_page', $request->cookie('audit_per_page', 50));
+        $perPage = in_array($perPage, [25, 50, 100, 200]) ? $perPage : 50;
+
+        $auditLogs = $query->paginate($perPage);
 
         return response()->json([
             'success' => true,

@@ -242,12 +242,13 @@
                 <h2 class="card-title">Audit Log - Alle Activiteiten</h2>
 
                 {{-- Audit Log Filters --}}
-                <form method="GET" action="{{ route('admin.dashboard') }}" id="auditLogFilterForm" class="audit-log-filters" style="margin-bottom: 2rem;" onsubmit="return filterAuditLog(event)">
+                <form method="GET" action="{{ route('admin.dashboard') }}" id="auditLogFilterForm" class="audit-log-filters" style="margin-bottom: 2rem;">
                     <div class="filter-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
                         <div class="neu-form-group">
                             <label for="user_id" class="neu-label">Gebruiker</label>
                             <select id="user_id" name="user_id" class="neu-input">
                                 <option value="">Alle gebruikers</option>
+                                <option value="system" {{ request('user_id') == 'system' ? 'selected' : '' }}>Systeem</option>
                                 @foreach($causers as $causer)
                                     <option value="{{ $causer->id }}" {{ request('user_id') == $causer->id ? 'selected' : '' }}>
                                         {{ $causer->name ?? $causer->email }}
@@ -299,10 +300,23 @@
                                 value="{{ request('search') }}"
                             >
                         </div>
+
+                        <div class="neu-form-group">
+                            <label for="per_page" class="neu-label">Per pagina</label>
+                            <select id="per_page" name="per_page" class="neu-input" onchange="updatePerPageCookie(this.value)">
+                                @php
+                                    $defaultPerPage = request('per_page', request()->cookie('audit_per_page', 50));
+                                @endphp
+                                <option value="25" {{ $defaultPerPage == 25 ? 'selected' : '' }}>25</option>
+                                <option value="50" {{ $defaultPerPage == 50 ? 'selected' : '' }}>50</option>
+                                <option value="100" {{ $defaultPerPage == 100 ? 'selected' : '' }}>100</option>
+                                <option value="200" {{ $defaultPerPage == 200 ? 'selected' : '' }}>200</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="filter-actions" style="display: flex; gap: 0.75rem;">
-                        <button type="submit" class="neu-button-primary">
+                        <button type="button" class="neu-button-primary" onclick="filterAuditLog(event)">
                             <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" class="icon-inline">
                                 <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
                             </svg>
@@ -351,8 +365,71 @@
                     </table>
                 </div>
 
-                {{-- Pagination (AJAX) --}}
-                <div id="auditLogPagination" class="mt-6" style="display: none;"></div>
+                {{-- Pagination --}}
+                @if($auditLogs->hasPages())
+                    <div id="auditLogPagination" class="mt-6">
+                        <nav role="navigation" aria-label="Pagination Navigation" style="display: flex; align-items: center; justify-content: space-between;">
+                            {{-- Mobile pagination --}}
+                            <div style="display: flex; justify-content: space-between; flex: 1;">
+                                @if($auditLogs->onFirstPage())
+                                    <span></span>
+                                @else
+                                    <button onclick="changeAuditLogPage({{ $auditLogs->currentPage() - 1 }})" class="neu-button-secondary">Vorige</button>
+                                @endif
+                                @if($auditLogs->hasMorePages())
+                                    <button onclick="changeAuditLogPage({{ $auditLogs->currentPage() + 1 }})" class="neu-button-secondary">Volgende</button>
+                                @endif
+                            </div>
+
+                            {{-- Desktop pagination --}}
+                            <div style="display: none;">
+                                <div>
+                                    <p style="font-size: 0.875rem; color: #374151;">
+                                        Resultaten <span style="font-weight: 500;">{{ $auditLogs->firstItem() }}</span>
+                                        tot <span style="font-weight: 500;">{{ $auditLogs->lastItem() }}</span>
+                                        van <span style="font-weight: 500;">{{ $auditLogs->total() }}</span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <span style="position: relative; z-index: 0; display: inline-flex; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); border-radius: 0.375rem;">
+                                        {{-- Previous --}}
+                                        @if($auditLogs->onFirstPage())
+                                            <span style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem; border-top-left-radius: 0.375rem; border-bottom-left-radius: 0.375rem; border: 1px solid #d1d5db; background-color: #ffffff; font-size: 0.875rem; font-weight: 500; color: #d1d5db; cursor: not-allowed;">
+                                                <svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                            </span>
+                                        @else
+                                            <button onclick="changeAuditLogPage({{ $auditLogs->currentPage() - 1 }})" style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem; border-top-left-radius: 0.375rem; border-bottom-left-radius: 0.375rem; border: 1px solid #d1d5db; background-color: #ffffff; font-size: 0.875rem; font-weight: 500; color: #6b7280; cursor: pointer;">
+                                                <svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                            </button>
+                                        @endif
+
+                                        {{-- Page Numbers --}}
+                                        @foreach(range(max(1, $auditLogs->currentPage() - 2), min($auditLogs->lastPage(), $auditLogs->currentPage() + 2)) as $page)
+                                            @if($page == $auditLogs->currentPage())
+                                                <span style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid #3b82f6; background-color: #eff6ff; font-size: 0.875rem; font-weight: 500; color: #3b82f6;">{{ $page }}</span>
+                                            @else
+                                                <button onclick="changeAuditLogPage({{ $page }})" style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid #d1d5db; background-color: #ffffff; font-size: 0.875rem; font-weight: 500; color: #374151; cursor: pointer;">{{ $page }}</button>
+                                            @endif
+                                        @endforeach
+
+                                        {{-- Next --}}
+                                        @if($auditLogs->hasMorePages())
+                                            <button onclick="changeAuditLogPage({{ $auditLogs->currentPage() + 1 }})" style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem; border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem; border: 1px solid #d1d5db; background-color: #ffffff; font-size: 0.875rem; font-weight: 500; color: #6b7280; cursor: pointer;">
+                                                <svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                                            </button>
+                                        @else
+                                            <span style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem; border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem; border: 1px solid #d1d5db; background-color: #ffffff; font-size: 0.875rem; font-weight: 500; color: #d1d5db; cursor: not-allowed;">
+                                                <svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                                            </span>
+                                        @endif
+                                    </span>
+                                </div>
+                            </div>
+                        </nav>
+                    </div>
+                @else
+                    <div id="auditLogPagination" class="mt-6" style="display: none;"></div>
+                @endif
             </div>
         </div>
     </div>
@@ -361,6 +438,25 @@
 {{-- Confirmation Modal is provided by app-neu.blade.php layout --}}
 
 <style>
+/* Pagination responsive styles */
+#auditLogPagination nav > div:first-child {
+    display: flex;
+}
+#auditLogPagination nav > div:last-child {
+    display: none;
+}
+@media (min-width: 640px) {
+    #auditLogPagination nav > div:first-child {
+        display: none;
+    }
+    #auditLogPagination nav > div:last-child {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
 /* Danger button style */
 .neu-button-danger {
     background: #ef4444;
@@ -694,12 +790,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Filter audit log (form submission)
+    // Update per_page cookie and refresh
+    window.updatePerPageCookie = function(value) {
+        // Set cookie for 1 year
+        const expires = new Date();
+        expires.setFullYear(expires.getFullYear() + 1);
+        document.cookie = `audit_per_page=${value}; expires=${expires.toUTCString()}; path=/`;
+
+        // Refresh audit log with new per_page value
+        refreshAuditLog();
+    };
+
+    // Filter audit log (button click)
     window.filterAuditLog = function(event) {
-        event.preventDefault();
+        if (event) event.preventDefault();
         checkFiltersActive();
         refreshAuditLog();
-        return false; // Prevent form submission
     };
 
     // Clear audit log filters
@@ -829,10 +935,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const to = pagination.to;
         const total = pagination.total;
 
-        let html = '<nav role="navigation" aria-label="Pagination Navigation" class="flex items-center justify-between">';
+        let html = '<nav role="navigation" aria-label="Pagination Navigation" style="display: flex; align-items: center; justify-content: space-between;">';
 
-        // Results info
-        html += '<div class="flex justify-between flex-1 sm:hidden">';
+        // Mobile pagination
+        html += '<div style="display: flex; justify-content: space-between; flex: 1;">';
         if (currentPage > 1) {
             html += `<button onclick="changeAuditLogPage(${currentPage - 1})" class="neu-button-secondary">Vorige</button>`;
         } else {
@@ -844,17 +950,17 @@ document.addEventListener('DOMContentLoaded', function() {
         html += '</div>';
 
         // Desktop pagination
-        html += '<div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">';
-        html += `<div><p class="text-sm text-gray-700 dark:text-gray-300">Resultaten <span class="font-medium">${from}</span> tot <span class="font-medium">${to}</span> van <span class="font-medium">${total}</span></p></div>`;
-        html += '<div><span class="relative z-0 inline-flex shadow-sm rounded-md">';
+        html += '<div style="display: none;">';
+        html += `<div><p style="font-size: 0.875rem; color: #374151;">Resultaten <span style="font-weight: 500;">${from}</span> tot <span style="font-weight: 500;">${to}</span> van <span style="font-weight: 500;">${total}</span></p></div>`;
+        html += '<div><span style="position: relative; z-index: 0; display: inline-flex; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); border-radius: 0.375rem;">';
 
         // Previous button
         if (currentPage > 1) {
-            html += `<button onclick="changeAuditLogPage(${currentPage - 1})" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+            html += `<button onclick="changeAuditLogPage(${currentPage - 1})" style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem; border-top-left-radius: 0.375rem; border-bottom-left-radius: 0.375rem; border: 1px solid #d1d5db; background-color: #ffffff; font-size: 0.875rem; font-weight: 500; color: #6b7280; cursor: pointer;">
                 <svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
             </button>`;
         } else {
-            html += `<span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-300 dark:text-gray-600 cursor-not-allowed">
+            html += `<span style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem; border-top-left-radius: 0.375rem; border-bottom-left-radius: 0.375rem; border: 1px solid #d1d5db; background-color: #ffffff; font-size: 0.875rem; font-weight: 500; color: #d1d5db; cursor: not-allowed;">
                 <svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
             </span>`;
         }
@@ -864,34 +970,34 @@ document.addEventListener('DOMContentLoaded', function() {
         const endPage = Math.min(lastPage, currentPage + 2);
 
         if (startPage > 1) {
-            html += `<button onclick="changeAuditLogPage(1)" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">1</button>`;
+            html += `<button onclick="changeAuditLogPage(1)" style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid #d1d5db; background-color: #ffffff; font-size: 0.875rem; font-weight: 500; color: #374151; cursor: pointer;">1</button>`;
             if (startPage > 2) {
-                html += `<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300">...</span>`;
+                html += `<span style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid #d1d5db; background-color: #ffffff; font-size: 0.875rem; font-weight: 500; color: #374151;">...</span>`;
             }
         }
 
         for (let i = startPage; i <= endPage; i++) {
             if (i === currentPage) {
-                html += `<span class="relative inline-flex items-center px-4 py-2 border border-blue-500 bg-blue-50 dark:bg-blue-900 text-sm font-medium text-blue-600 dark:text-blue-200">${i}</span>`;
+                html += `<span style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid #3b82f6; background-color: #eff6ff; font-size: 0.875rem; font-weight: 500; color: #3b82f6;">${i}</span>`;
             } else {
-                html += `<button onclick="changeAuditLogPage(${i})" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">${i}</button>`;
+                html += `<button onclick="changeAuditLogPage(${i})" style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid #d1d5db; background-color: #ffffff; font-size: 0.875rem; font-weight: 500; color: #374151; cursor: pointer;">${i}</button>`;
             }
         }
 
         if (endPage < lastPage) {
             if (endPage < lastPage - 1) {
-                html += `<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300">...</span>`;
+                html += `<span style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid #d1d5db; background-color: #ffffff; font-size: 0.875rem; font-weight: 500; color: #374151;">...</span>`;
             }
-            html += `<button onclick="changeAuditLogPage(${lastPage})" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">${lastPage}</button>`;
+            html += `<button onclick="changeAuditLogPage(${lastPage})" style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem 1rem; border: 1px solid #d1d5db; background-color: #ffffff; font-size: 0.875rem; font-weight: 500; color: #374151; cursor: pointer;">${lastPage}</button>`;
         }
 
         // Next button
         if (currentPage < lastPage) {
-            html += `<button onclick="changeAuditLogPage(${currentPage + 1})" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+            html += `<button onclick="changeAuditLogPage(${currentPage + 1})" style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem; border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem; border: 1px solid #d1d5db; background-color: #ffffff; font-size: 0.875rem; font-weight: 500; color: #6b7280; cursor: pointer;">
                 <svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
             </button>`;
         } else {
-            html += `<span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-300 dark:text-gray-600 cursor-not-allowed">
+            html += `<span style="position: relative; display: inline-flex; align-items: center; padding: 0.5rem; border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem; border: 1px solid #d1d5db; background-color: #ffffff; font-size: 0.875rem; font-weight: 500; color: #d1d5db; cursor: not-allowed;">
                 <svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
             </span>`;
         }
