@@ -658,9 +658,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         tbody.innerHTML = '<tr><td colspan="5" class="text-center">Geen eigenaren gevonden</td></tr>';
                     }
                 }, 300);
-
-                // Reload to update stats
-                setTimeout(() => window.location.reload(), 1000);
             } else {
                 showToast(data.message, 'error', 5000);
             }
@@ -752,8 +749,58 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.style.overflow = '';
             form.reset();
 
-            // Reload to show updated stats
-            setTimeout(() => window.location.reload(), 1000);
+            // Add new owner to the table without reload
+            const tbody = document.querySelector('#section-eigenaren tbody');
+            if (tbody && data.owner) {
+                // Remove "no owners" placeholder if exists
+                const noOwnersRow = tbody.querySelector('td[colspan="5"]');
+                if (noOwnersRow) {
+                    noOwnersRow.parentElement.remove();
+                }
+
+                // Create new row
+                const newRow = document.createElement('tr');
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+                const ownerName = data.owner.name || 'Pending';
+                const ownerEmail = data.owner.email;
+                const hotelsCount = data.owner.hotels_count || 0;
+
+                newRow.innerHTML = `
+                    <td><strong>${ownerName}</strong></td>
+                    <td>${ownerEmail}</td>
+                    <td>${hotelsCount}</td>
+                    <td><span class="neu-badge warning">Pending</span></td>
+                    <td>
+                        <div class="action-buttons" style="display: flex; gap: 0.5rem;">
+                            <form action="/admin/owners/${data.owner.id}/activate" method="POST" class="d-inline" data-owner-form="activate">
+                                <input type="hidden" name="_token" value="${csrfToken}">
+                                <button type="button" class="action-btn" style="color: #10b981;" aria-label="Activeren" onclick="confirmActivateOwner(event, '${ownerEmail}')">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </form>
+                            <form action="/admin/owners/${data.owner.id}" method="POST" class="d-inline" data-owner-form="delete">
+                                <input type="hidden" name="_token" value="${csrfToken}">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="button" class="action-btn danger" aria-label="Verwijderen" onclick="confirmDeleteOwner(event, '${ownerEmail}')">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                `;
+
+                // Add to top of table with fade-in animation
+                newRow.style.opacity = '0';
+                tbody.insertBefore(newRow, tbody.firstChild);
+                setTimeout(() => {
+                    newRow.style.transition = 'opacity 0.3s ease';
+                    newRow.style.opacity = '1';
+                }, 10);
+            }
         })
         .catch(error => {
             console.error('Owner create error:', error);
