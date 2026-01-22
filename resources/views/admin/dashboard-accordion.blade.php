@@ -681,10 +681,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Modal event listeners (ESC and overlay click) are provided by app-neu.blade.php layout
 
-    // Refresh audit log
+    // Refresh audit log with cooldown to prevent excessive requests
+    let auditLogCooldown = false;
+    let auditLogPendingRefresh = false;
+
     window.refreshAuditLog = function() {
         const tbody = document.getElementById('auditLogTableBody');
         if (!tbody) return;
+
+        // If on cooldown, mark that a refresh is pending
+        if (auditLogCooldown) {
+            auditLogPendingRefresh = true;
+            return;
+        }
+
+        // Set cooldown (3 seconds)
+        auditLogCooldown = true;
+        setTimeout(() => {
+            auditLogCooldown = false;
+            // If a refresh was requested during cooldown, execute it now
+            if (auditLogPendingRefresh) {
+                auditLogPendingRefresh = false;
+                refreshAuditLog();
+            }
+        }, 3000);
 
         fetch('/admin/audit-logs', {
             method: 'GET',
