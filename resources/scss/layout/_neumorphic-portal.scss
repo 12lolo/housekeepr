@@ -159,7 +159,7 @@
     }
   }
 
-  @media (max-width: 1024px) {
+  @media (max-width: 768px) {
     transform: translateX(-100%);
     transition: transform 0.3s ease;
 
@@ -175,7 +175,7 @@
   margin-left: 260px;
   min-height: 100vh;
 
-  @media (max-width: 1024px) {
+  @media (max-width: 768px) {
     margin-left: 0;
   }
 }
@@ -193,14 +193,14 @@
 
     .menu-toggle {
       @include neu-icon-badge($neu-light-bg);
-      display: none;
-
-      @media (max-width: 1024px) {
-        display: flex;
-      }
+      display: flex;
 
       @media (prefers-color-scheme: dark) {
         @include neu-icon-badge($neu-dark-bg);
+      }
+
+      @media (min-width: 769px) {
+        display: none !important;
       }
     }
 
@@ -654,24 +654,44 @@
   }
 }
 
-// Responsive menu button - hide on large screens when sidebar is visible
-@media (min-width: 1024px) {
+// Responsive - show sidebar on large screens
+@media (min-width: 769px) {
   .neu-portal {
-    .menu-toggle {
-      display: none;
-    }
-
     .neu-portal-sidebar {
       transform: translateX(0);
     }
   }
 }
 
+// Mobile sidebar backdrop
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+
+  &.active {
+    display: block;
+    opacity: 1;
+  }
+
+  @media (min-width: 769px) {
+    display: none !important;
+  }
+}
+
 // Mobile: sidebar hidden by default
-@media (max-width: 1023px) {
+@media (max-width: 768px) {
   .neu-portal-sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s ease;
+    z-index: 100;
 
     &.open {
       transform: translateX(0);

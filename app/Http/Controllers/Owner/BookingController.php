@@ -59,7 +59,6 @@ class BookingController extends Controller
             'guest_name' => 'required|string|max:255',
             'check_in' => 'required|date|after_or_equal:today',
             'check_out' => 'required|date|after:check_in',
-            'notes' => 'nullable|string|max:1000',
         ]);
 
         // Verify room belongs to user's hotel
@@ -117,7 +116,11 @@ class BookingController extends Controller
         $validated['check_in_datetime'] = $checkInDate->format('Y-m-d').' '.$checkInTime;
         $validated['check_out_datetime'] = $checkOutDate->format('Y-m-d').' '.$checkOutTime;
 
+        \Log::info("BookingController: Creating booking for room #{$room->id} ({$room->room_number}), guest: {$validated['guest_name']}, check-in: {$validated['check_in_datetime']}, check-out: {$validated['check_out_datetime']}");
+
         $booking = Booking::create($validated);
+
+        \Log::info("BookingController: Booking #{$booking->id} created successfully - will trigger BookingCreated event");
 
         activity()
             ->performedOn($booking)
@@ -125,6 +128,8 @@ class BookingController extends Controller
             ->log('Boeking aangemaakt');
 
         if ($request->ajax() || $request->wantsJson()) {
+            \Log::info("BookingController: Returning AJAX response for booking #{$booking->id}");
+
             return response()->json([
                 'success' => true,
                 'message' => 'Boeking succesvol aangemaakt.',
@@ -199,7 +204,6 @@ class BookingController extends Controller
             'guest_name' => 'required|string|max:255',
             'check_in' => 'required|date',
             'check_out' => 'required|date|after:check_in',
-            'notes' => 'nullable|string|max:1000',
         ]);
 
         // Verify new room belongs to hotel

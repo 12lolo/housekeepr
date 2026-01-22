@@ -207,7 +207,28 @@ class RoomController extends Controller
                 );
         }
 
+        // Check if check-in or check-out times changed
+        $timesChanged = ($room->checkin_time !== $validated['checkin_time']) ||
+                        ($room->checkout_time !== $validated['checkout_time']);
+
         $room->update($validated);
+
+        // Update future bookings if times changed
+        if ($timesChanged) {
+            $futureBookings = \App\Models\Booking::where('room_id', $room->id)
+                ->where('check_in', '>=', now()->toDateString())
+                ->get();
+
+            foreach ($futureBookings as $booking) {
+                $checkInDate = \Carbon\Carbon::parse($booking->check_in);
+                $checkOutDate = \Carbon\Carbon::parse($booking->check_out);
+
+                $booking->update([
+                    'check_in_datetime' => $checkInDate->format('Y-m-d').' '.$room->checkin_time,
+                    'check_out_datetime' => $checkOutDate->format('Y-m-d').' '.$room->checkout_time,
+                ]);
+            }
+        }
 
         activity()
             ->performedOn($room)

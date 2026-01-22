@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Hotel extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'name',
         'owner_id',
@@ -34,10 +35,5 @@ class Hotel extends Model
     public function cleaners()
     {
         return $this->hasMany(Cleaner::class);
-    }
-
-    public function dayCapacities()
-    {
-        return $this->hasMany(DayCapacity::class);
     }
 }

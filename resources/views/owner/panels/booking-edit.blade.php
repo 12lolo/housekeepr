@@ -59,16 +59,6 @@
                     >
                 </div>
 
-                <div class="neu-form-group">
-                    <label for="edit_notes" class="neu-label">Opmerkingen</label>
-                    <textarea
-                        id="edit_notes"
-                        name="notes"
-                        class="neu-input"
-                        rows="3"
-                    ></textarea>
-                </div>
-
                 <div class="neu-modal-footer">
                     <button type="button" class="neu-button-secondary" onclick="closeModal('bookingEditModal')">Annuleren</button>
                     <button type="submit" class="neu-button-primary">Opslaan</button>

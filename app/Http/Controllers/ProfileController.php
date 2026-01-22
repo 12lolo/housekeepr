@@ -57,4 +57,18 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
+
+    /**
+     * Toggle email notifications on/off.
+     */
+    public function toggleNotifications(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $user->notifications_enabled = ! $user->notifications_enabled;
+        $user->save();
+
+        $status = $user->notifications_enabled ? 'ingeschakeld' : 'uitgeschakeld';
+
+        return back()->with('success', "E-mail notificaties {$status}");
+    }
 }

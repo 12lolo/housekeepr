@@ -16,7 +16,6 @@ class Booking extends Model
         'check_out',
         'check_in_datetime',
         'check_out_datetime',
-        'notes',
     ];
 
     protected function casts(): array

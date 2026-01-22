@@ -36,15 +36,17 @@ class TestBookingFlow extends Command
         $this->info('Step 1: Checking prerequisites...');
 
         $hotel = Hotel::first();
-        if (!$hotel) {
+        if (! $hotel) {
             $this->error('❌ No hotel found');
+
             return 1;
         }
         $this->info("✅ Hotel found: {$hotel->name} (ID: {$hotel->id})");
 
         $room = $hotel->rooms()->first();
-        if (!$room) {
+        if (! $room) {
             $this->error('❌ No room found');
+
             return 1;
         }
         $this->info("✅ Room found: {$room->room_number} (ID: {$room->id})");
@@ -56,9 +58,9 @@ class TestBookingFlow extends Command
         $this->newLine();
         $this->info('Step 2: Checking event listeners...');
         $listeners = Event::getListeners(BookingCreated::class);
-        $this->info('Registered listeners for BookingCreated: ' . count($listeners));
+        $this->info('Registered listeners for BookingCreated: '.count($listeners));
         foreach ($listeners as $listener) {
-            $this->info('  - ' . (is_string($listener) ? $listener : get_class($listener)));
+            $this->info('  - '.(is_string($listener) ? $listener : get_class($listener)));
         }
 
         // 3. Create test booking
@@ -75,7 +77,7 @@ class TestBookingFlow extends Command
             'check_out' => $checkOutDate->toDateString(),
             'check_in_datetime' => $checkInDate->setTime(14, 0),
             'check_out_datetime' => $checkOutDate->setTime(11, 0),
-            'notes' => 'Test booking via CLI command'
+            'notes' => 'Test booking via CLI command',
         ]);
 
         $this->info("✅ Booking created (ID: {$booking->id})");
@@ -89,13 +91,13 @@ class TestBookingFlow extends Command
         $booking->load('cleaningTask');
 
         if ($booking->cleaningTask) {
-            $this->info("✅ Cleaning task created!");
+            $this->info('✅ Cleaning task created!');
             $this->info("   Task ID: {$booking->cleaningTask->id}");
             $this->info("   Cleaner ID: {$booking->cleaningTask->cleaner_id}");
             $this->info("   Date: {$booking->cleaningTask->date}");
             $this->info("   Status: {$booking->cleaningTask->status}");
         } else {
-            $this->error("❌ No cleaning task created");
+            $this->error('❌ No cleaning task created');
 
             // Check for issues
             $issues = \App\Models\Issue::where('room_id', $room->id)
@@ -107,17 +109,8 @@ class TestBookingFlow extends Command
                 foreach ($issues as $issue) {
                     $this->warn("   - {$issue->note} ({$issue->impact})");
                 }
-            }
-
-            // Check day capacity
-            $capacity = \App\Models\DayCapacity::where('hotel_id', $hotel->id)
-                ->where('date', $checkInDate->toDateString())
-                ->first();
-
-            if ($capacity) {
-                $this->info("   Day capacity for {$checkInDate->toDateString()}: {$capacity->capacity}");
             } else {
-                $this->warn("   No day capacity set for {$checkInDate->toDateString()}");
+                $this->warn("   No open issues found - check cleaner availability for {$checkInDate->format('l')}");
             }
         }
 
@@ -127,19 +120,19 @@ class TestBookingFlow extends Command
 
         try {
             event(new BookingCreated($booking));
-            $this->info("✅ Event fired manually");
+            $this->info('✅ Event fired manually');
 
             sleep(1);
             $booking->refresh();
             $booking->load('cleaningTask');
 
             if ($booking->cleaningTask) {
-                $this->info("✅ Task now exists after manual event fire!");
+                $this->info('✅ Task now exists after manual event fire!');
             } else {
-                $this->warn("⚠️  Still no task after manual event fire");
+                $this->warn('⚠️  Still no task after manual event fire');
             }
         } catch (\Exception $e) {
-            $this->error("❌ Error firing event: " . $e->getMessage());
+            $this->error('❌ Error firing event: '.$e->getMessage());
         }
 
         $this->newLine();

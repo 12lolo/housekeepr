@@ -10,7 +10,6 @@ use App\Http\Controllers\Owner\BookingController;
 use App\Http\Controllers\Owner\CleanerController as OwnerCleanerController;
 use App\Http\Controllers\Owner\CleaningTaskController;
 use App\Http\Controllers\Owner\DashboardController as OwnerDashboardController;
-use App\Http\Controllers\Owner\DayCapacityController;
 use App\Http\Controllers\Owner\IssueController as OwnerIssueController;
 use App\Http\Controllers\Owner\PlannerController;
 use App\Http\Controllers\Owner\RoomController;
@@ -80,12 +79,6 @@ Route::middleware(['auth', 'verified', 'role:owner,authed-user', 'owner.active']
     // Cleaning Tasks
     Route::get('/cleaning-tasks/{cleaningTask}', [CleaningTaskController::class, 'show'])->name('cleaning-tasks.show');
 
-    // Day Capacity
-    Route::get('/capacity', [DayCapacityController::class, 'index'])->name('capacity.index');
-    Route::post('/capacity', [DayCapacityController::class, 'store'])->name('capacity.store');
-    Route::post('/capacity/bulk', [DayCapacityController::class, 'bulkStore'])->name('capacity.bulk');
-    Route::delete('/capacity/{capacity}', [DayCapacityController::class, 'destroy'])->name('capacity.destroy');
-
     // Issues
     Route::resource('issues', OwnerIssueController::class);
     Route::post('/issues/{issue}/mark-fixed', [OwnerIssueController::class, 'markFixed'])->name('issues.mark-fixed');
@@ -103,6 +96,9 @@ Route::middleware(['auth', 'verified', 'role:owner,authed-user', 'owner.active']
 // Cleaner Portal (mobile-first)
 Route::middleware(['auth', 'verified', 'role:cleaner'])->prefix('cleaner')->name('cleaner.')->group(function () {
     Route::get('/dashboard', [CleanerDashboardController::class, 'index'])->name('dashboard');
+
+    // NFC Room Clock-in
+    Route::get('/room/{room_number}', [TaskController::class, 'showRoomClockIn'])->name('room.clock-in');
 
     // Tasks
     Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
@@ -122,6 +118,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile/toggle-notifications', [ProfileController::class, 'toggleNotifications'])->name('profile.toggle-notifications');
 });
 
 require __DIR__.'/auth.php';

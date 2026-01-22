@@ -1,3 +1,4 @@
+{{-- Updated: 2026-01-22 - Removed notes field --}}
 @extends('layouts.app-neu')
 
 @section('title', 'Owner Dashboard')
@@ -236,7 +237,7 @@
                                 <th>Acties</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="roomsTableBody">
                             @forelse($rooms as $room)
                                 @php
                                     // Bereken tijdslot tussen check-out en check-in
@@ -264,7 +265,7 @@
                                         $timeSlot = '-';
                                     }
                                 @endphp
-                                <tr>
+                                <tr data-room-id="{{ $room->id }}">
                                     <td><strong>{{ $room->room_number }}</strong></td>
                                     <td>
                                         @php
@@ -348,6 +349,7 @@
                     <table class="neu-table">
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Kamer</th>
                                 <th>Gast Naam</th>
                                 <th>Check-in</th>
@@ -356,21 +358,44 @@
                                 <th>Acties</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="bookingsTableBody">
                             @forelse($bookings as $booking)
-                                <tr>
+                                <tr data-booking-id="{{ $booking->id }}">
+                                    <td><span class="badge badge-secondary">#{{ $booking->id }}</span></td>
                                     <td><strong>{{ $booking->room->room_number }}</strong></td>
                                     <td>{{ $booking->guest_name }}</td>
-                                    <td>{{ $booking->check_in->format('d-m-Y') }}</td>
-                                    <td>{{ $booking->check_out->format('d-m-Y') }}</td>
+                                    <td>{{ $booking->check_in_datetime->format('d-m-Y H:i') }}</td>
+                                    <td>{{ $booking->check_out_datetime->format('d-m-Y H:i') }}</td>
                                     <td>
-                                        <span class="badge badge-{{ $booking->status === 'confirmed' ? 'success' : 'secondary' }}">
-                                            {{ ucfirst($booking->status) }}
+                                        @php
+                                            $now = now();
+                                            $checkIn = \Carbon\Carbon::parse($booking->check_in_datetime);
+                                            $checkOut = \Carbon\Carbon::parse($booking->check_out_datetime ?? $booking->check_out);
+
+                                            if ($now > $checkOut) {
+                                                $status = 'Vertrokken';
+                                                $badgeClass = 'secondary';
+                                            } elseif ($checkOut->isToday()) {
+                                                $status = 'Check-out vandaag';
+                                                $badgeClass = 'warning';
+                                            } elseif ($now >= $checkIn && $now < $checkOut) {
+                                                $status = 'Ingecheckt';
+                                                $badgeClass = 'success';
+                                            } elseif ($checkIn->isToday()) {
+                                                $status = 'Check-in vandaag';
+                                                $badgeClass = 'info';
+                                            } else {
+                                                $status = 'Verwacht';
+                                                $badgeClass = 'primary';
+                                            }
+                                        @endphp
+                                        <span class="badge badge-{{ $badgeClass }}">
+                                            {{ $status }}
                                         </span>
                                     </td>
                                     <td>
                                         <div class="action-buttons">
-                                            <button class="action-btn" aria-label="Bewerken" onclick="editBooking({{ $booking->id }}, {{ $booking->room_id }}, '{{ addslashes($booking->guest_name) }}', '{{ $booking->check_in }}', '{{ $booking->check_out }}', '{{ addslashes($booking->notes ?? '') }}')">
+                                            <button class="action-btn" aria-label="Bewerken" onclick="editBooking({{ $booking->id }}, {{ $booking->room_id }}, '{{ addslashes($booking->guest_name) }}', '{{ $booking->check_in->format('Y-m-d') }}', '{{ $booking->check_out->format('Y-m-d') }}')">
                                                 <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
                                                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
                                                 </svg>
@@ -388,7 +413,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center">Geen boekingen gevonden</td>
+                                    <td colspan="7" class="text-center">Geen boekingen gevonden</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -435,9 +460,9 @@
                                 <th>Acties</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="cleanersTableBody">
                             @forelse($cleaners as $cleaner)
-                                <tr>
+                                <tr data-cleaner-id="{{ $cleaner->id }}">
                                     <td><strong>{{ $cleaner->user->name }}</strong></td>
                                     <td>{{ $cleaner->user->email }}</td>
                                     <td>{{ $cleaner->user->phone ?? '-' }}</td>
@@ -520,9 +545,9 @@
                                 <th>Acties</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="issuesTableBody">
                             @forelse($issues as $issue)
-                                <tr>
+                                <tr data-issue-id="{{ $issue->id }}">
                                     <td><strong>{{ $issue->room->room_number }}</strong></td>
                                     <td>{{ $issue->note }}</td>
                                     <td>
@@ -539,7 +564,7 @@
                                     <td>
                                         <div class="action-buttons">
                                             @if($issue->status === 'open')
-                                            <form action="{{ route('owner.issues.mark-fixed', $issue) }}" method="POST" onsubmit="return handleMarkFixed(event, this)">
+                                            <form action="{{ route('owner.issues.mark-fixed', $issue) }}" method="POST" data-issue-id="{{ $issue->id }}" onsubmit="return handleMarkFixed(event, this)">
                                                 @csrf
                                                 <button type="submit" class="action-btn" aria-label="Als Gefixt Markeren">
                                                     <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
@@ -596,7 +621,9 @@
                             <tr>
                                 <th>Kamer</th>
                                 <th>Datum</th>
-                                <th>Beschikbaar voor schoonmaak</th>
+                                <th>Start</th>
+                                <th>Duur</th>
+                                <th>Eindtijd</th>
                                 <th>Deadline</th>
                                 <th>Schoonmaker</th>
                                 <th>Status</th>
@@ -612,7 +639,15 @@
                                         @if($task->suggested_start_time)
                                             {{ $task->suggested_start_time->format('H:i') }}
                                         @else
-                                            <span class="text-muted">Niet gepland</span>
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $task->planned_duration }} min</td>
+                                    <td>
+                                        @if($task->suggested_start_time)
+                                            {{ $task->suggested_start_time->copy()->addMinutes($task->planned_duration)->format('H:i') }}
+                                        @else
+                                            <span class="text-muted">-</span>
                                         @endif
                                     </td>
                                     <td>{{ $task->deadline->format('H:i') }}</td>
@@ -634,7 +669,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center">Geen schoonmaaktaken gevonden</td>
+                                    <td colspan="9" class="text-center">Geen schoonmaaktaken gevonden</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -830,16 +865,35 @@ window.editRoom = function(roomId, roomNumber, roomType, standardDuration, check
     const checkinInput = document.getElementById('edit_checkin_time');
 
     if (roomNumberInput) roomNumberInput.value = roomNumber || '';
-    if (roomTypeSelect) roomTypeSelect.value = roomType || '';
+
+    // Handle room type - add as option if it doesn't exist in the select
+    if (roomTypeSelect && roomType) {
+        const optionExists = Array.from(roomTypeSelect.options).some(opt => opt.value === roomType);
+        if (!optionExists && roomType) {
+            // Add the current type as an option
+            const newOption = new Option(roomType, roomType, false, true);
+            roomTypeSelect.add(newOption);
+        } else {
+            roomTypeSelect.value = roomType;
+        }
+    }
+
+    // Set these values after room type to avoid being overwritten by change listener
     if (durationInput) durationInput.value = standardDuration || 30;
-    if (checkoutInput) checkoutInput.value = checkoutTime || '11:00';
-    if (checkinInput) checkinInput.value = checkinTime || '15:00';
+
+    // Use setTimeout to ensure these are set AFTER any change event handlers
+    setTimeout(() => {
+        if (checkoutInput) checkoutInput.value = checkoutTime || '11:00';
+        if (checkinInput) checkinInput.value = checkinTime || '15:00';
+    }, 10);
 
     console.log('Form filled, opening modal...');
     window.openModal('roomEditModal');
 };
 
-window.editBooking = function(bookingId, roomId, guestName, checkIn, checkOut, notes) {
+window.editBooking = function(bookingId, roomId, guestName, checkIn, checkOut) {
+    console.log('editBooking called with:', { bookingId, roomId, guestName, checkIn, checkOut });
+
     const form = document.getElementById('bookingEditForm');
     if (!form) {
         console.error('Booking edit form not found');
@@ -851,7 +905,13 @@ window.editBooking = function(bookingId, roomId, guestName, checkIn, checkOut, n
     document.getElementById('edit_guest_name').value = guestName;
     document.getElementById('edit_check_in').value = checkIn;
     document.getElementById('edit_check_out').value = checkOut;
-    document.getElementById('edit_notes').value = notes || '';
+
+    console.log('Form fields set:', {
+        room: document.getElementById('edit_booking_room_id').value,
+        guest: document.getElementById('edit_guest_name').value,
+        checkIn: document.getElementById('edit_check_in').value,
+        checkOut: document.getElementById('edit_check_out').value
+    });
 
     window.openModal('bookingEditModal');
 };
@@ -866,9 +926,12 @@ window.confirmDeleteRoomFromButton = function(button) {
 };
 
 window.confirmDeleteRoom = function(roomId, roomNumber) {
-    if (confirm(`Weet je zeker dat je kamer ${roomNumber} wilt verwijderen?\n\nDit kan niet ongedaan worden gemaakt.`)) {
-        deleteRoom(roomId);
-    }
+    showConfirmModal(
+        'Kamer verwijderen',
+        `Weet je zeker dat je kamer ${roomNumber} wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`,
+        'Verwijderen',
+        () => deleteRoom(roomId)
+    );
 };
 
 window.deleteRoom = function(roomId) {
@@ -905,9 +968,22 @@ window.deleteRoom = function(roomId) {
     })
     .then(data => {
         showToast(data.message || 'Kamer verwijderd.', 'success');
-        setTimeout(() => {
-            window.location.reload();
-        }, 1000);
+
+        // Remove room row from table
+        const row = document.querySelector(`tr[data-room-id="${roomId}"]`);
+        if (row) {
+            row.style.opacity = '0';
+            row.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => {
+                row.remove();
+
+                // Check if table is empty and show message
+                const tbody = document.getElementById('roomsTableBody');
+                if (tbody && tbody.querySelectorAll('tr').length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center">Geen kamers gevonden</td></tr>';
+                }
+            }, 300);
+        }
     })
     .catch(error => {
         console.error('Delete error:', error);
@@ -919,14 +995,176 @@ window.deleteRoom = function(roomId) {
     });
 };
 
+// Helper function to calculate booking status
+function calculateBookingStatus(checkInDatetime, checkOutDatetime) {
+    const now = new Date();
+    const checkIn = new Date(checkInDatetime);
+    const checkOut = new Date(checkOutDatetime);
+
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const checkInDate = new Date(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate());
+    const checkOutDate = new Date(checkOut.getFullYear(), checkOut.getMonth(), checkOut.getDate());
+
+    if (now > checkOut) {
+        return { label: 'Vertrokken', class: 'secondary' };
+    } else if (checkOutDate.getTime() === today.getTime()) {
+        return { label: 'Check-out vandaag', class: 'warning' };
+    } else if (now >= checkIn && now < checkOut) {
+        return { label: 'Ingecheckt', class: 'success' };
+    } else if (checkInDate.getTime() === today.getTime()) {
+        return { label: 'Check-in vandaag', class: 'info' };
+    } else {
+        return { label: 'Verwacht', class: 'primary' };
+    }
+}
+
+// Helper function to add booking to table
+function addBookingToTable(booking) {
+    const tbody = document.getElementById('bookingsTableBody');
+    if (!tbody) return;
+
+    // Remove "no bookings" message if it exists
+    const noBookingsRow = tbody.querySelector('td[colspan="6"]');
+    if (noBookingsRow) {
+        noBookingsRow.parentElement.remove();
+    }
+
+    // Calculate status
+    const status = calculateBookingStatus(booking.check_in_datetime, booking.check_out_datetime || booking.check_out);
+
+    // Format dates with time
+    const checkInDate = new Date(booking.check_in_datetime);
+    const checkOutDate = new Date(booking.check_out_datetime);
+    const checkInFormatted = checkInDate.toLocaleDateString('nl-NL', {day: '2-digit', month: '2-digit', year: 'numeric'}) + ' ' + checkInDate.toLocaleTimeString('nl-NL', {hour: '2-digit', minute: '2-digit'});
+    const checkOutFormatted = checkOutDate.toLocaleDateString('nl-NL', {day: '2-digit', month: '2-digit', year: 'numeric'}) + ' ' + checkOutDate.toLocaleTimeString('nl-NL', {hour: '2-digit', minute: '2-digit'});
+
+    // Format dates for input fields (YYYY-MM-DD)
+    const checkInDateOnly = booking.check_in || checkInDate.toISOString().split('T')[0];
+    const checkOutDateOnly = booking.check_out || checkOutDate.toISOString().split('T')[0];
+
+    // Create new row
+    const row = document.createElement('tr');
+    row.setAttribute('data-booking-id', booking.id);
+    row.innerHTML = `
+        <td><span class="badge badge-secondary">#${booking.id}</span></td>
+        <td><strong>${booking.room.room_number}</strong></td>
+        <td>${booking.guest_name}</td>
+        <td>${checkInFormatted}</td>
+        <td>${checkOutFormatted}</td>
+        <td>
+            <span class="badge badge-${status.class}">${status.label}</span>
+        </td>
+        <td>
+            <div class="action-buttons">
+                <button class="action-btn" aria-label="Bewerken" onclick="editBooking(${booking.id}, ${booking.room_id}, '${booking.guest_name.replace(/'/g, "\\'")}', '${checkInDateOnly}', '${checkOutDateOnly}')">
+                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                    </svg>
+                </button>
+                <button class="action-btn delete-btn" aria-label="Verwijderen"
+                        data-booking-id="${booking.id}"
+                        data-guest-name="${booking.guest_name}"
+                        onclick="confirmDeleteBooking(this)">
+                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+            </div>
+        </td>
+    `;
+
+    // Add row to table with animation
+    row.style.opacity = '0';
+    tbody.insertBefore(row, tbody.firstChild);
+    setTimeout(() => {
+        row.style.transition = 'opacity 0.3s ease';
+        row.style.opacity = '1';
+    }, 10);
+}
+
+// Booking create form submission
+window.submitBookingForm = function(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const submitBtn = document.getElementById('bookingSubmitBtn');
+    const cancelBtn = document.getElementById('bookingCancelBtn');
+    const formData = new FormData(form);
+
+    // Disable buttons during submission
+    submitBtn.disabled = true;
+    cancelBtn.disabled = true;
+    submitBtn.textContent = 'Bezig met opslaan...';
+
+    // Clear previous errors
+    document.querySelectorAll('.error-text').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw { status: response.status, data: data };
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        showToast(data.message || 'Boeking succesvol toegevoegd!', 'success');
+        closeModal('bookingCreateModal');
+        form.reset();
+
+        // Add new booking to table
+        if (data.booking) {
+            addBookingToTable(data.booking);
+        }
+    })
+    .catch(error => {
+        console.error('Booking create error:', error);
+
+        // Handle validation errors
+        if (error.status === 422 && error.data.errors) {
+            Object.keys(error.data.errors).forEach(field => {
+                const errorSpan = document.getElementById(`error_${field}`);
+                const inputField = document.querySelector(`[name="${field}"]`);
+
+                if (errorSpan && inputField) {
+                    errorSpan.textContent = error.data.errors[field][0];
+                    errorSpan.style.display = 'block';
+                    inputField.classList.add('has-error');
+                }
+            });
+            showToast('Controleer de formuliervelden', 'error', 5000);
+        } else {
+            showToast(error.data?.message || 'Er is een fout opgetreden. Probeer opnieuw.', 'error', 5000);
+        }
+    })
+    .finally(() => {
+        // Re-enable buttons
+        submitBtn.disabled = false;
+        cancelBtn.disabled = false;
+        submitBtn.textContent = 'Boeking toevoegen';
+    });
+};
+
 // Booking delete functions
 window.confirmDeleteBooking = function(button) {
     const bookingId = button.getAttribute('data-booking-id');
     const guestName = button.getAttribute('data-guest-name');
 
-    if (confirm(`Weet je zeker dat je de boeking voor ${guestName} wilt verwijderen?\n\nDit kan niet ongedaan worden gemaakt.`)) {
-        deleteBooking(bookingId);
-    }
+    showConfirmModal(
+        'Boeking verwijderen',
+        `Weet je zeker dat je de boeking voor ${guestName} wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`,
+        'Verwijderen',
+        () => deleteBooking(bookingId)
+    );
 };
 
 window.deleteBooking = function(bookingId) {
@@ -950,9 +1188,22 @@ window.deleteBooking = function(bookingId) {
     .then(data => {
         if (data.success) {
             showToast(data.message || 'Boeking verwijderd.', 'success');
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
+
+            // Remove booking row from table
+            const row = document.querySelector(`tr[data-booking-id="${bookingId}"]`);
+            if (row) {
+                row.style.opacity = '0';
+                row.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    row.remove();
+
+                    // Check if table is empty and show message
+                    const tbody = document.getElementById('bookingsTableBody');
+                    if (tbody && tbody.querySelectorAll('tr').length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Geen boekingen gevonden</td></tr>';
+                    }
+                }, 300);
+            }
         } else {
             showToast(data.message || 'Fout bij verwijderen boeking.', 'error', 5000);
         }
@@ -997,9 +1248,12 @@ window.confirmDeleteCleaner = function(button) {
     const cleanerId = button.getAttribute('data-cleaner-id');
     const cleanerName = button.getAttribute('data-cleaner-name');
 
-    if (confirm(`Weet je zeker dat je ${cleanerName} wilt verwijderen?\n\nDit kan niet ongedaan worden gemaakt.`)) {
-        deleteCleaner(cleanerId);
-    }
+    showConfirmModal(
+        'Schoonmaker verwijderen',
+        `Weet je zeker dat je ${cleanerName} wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`,
+        'Verwijderen',
+        () => deleteCleaner(cleanerId)
+    );
 };
 
 window.deleteCleaner = function(cleanerId) {
@@ -1023,9 +1277,22 @@ window.deleteCleaner = function(cleanerId) {
     .then(data => {
         if (data.success) {
             showToast(data.message || 'Schoonmaker verwijderd.', 'success');
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
+
+            // Remove cleaner row from table
+            const row = document.querySelector(`tr[data-cleaner-id="${cleanerId}"]`);
+            if (row) {
+                row.style.opacity = '0';
+                row.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    row.remove();
+
+                    // Check if table is empty and show message
+                    const tbody = document.getElementById('cleanersTableBody');
+                    if (tbody && tbody.querySelectorAll('tr').length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Geen schoonmakers gevonden</td></tr>';
+                    }
+                }, 300);
+            }
         } else {
             showToast(data.message || 'Fout bij verwijderen schoonmaker.', 'error', 5000);
         }
@@ -1052,9 +1319,7 @@ function handleFormSubmit(form) {
     })
     .then(response => {
         if (response.ok) {
-            closeModal();
-            // Reload the page to show updated data
-            window.location.reload();
+            return response.json();
         } else {
             return response.text().then(html => {
                 // Show validation errors
@@ -1071,12 +1336,24 @@ function handleFormSubmit(form) {
                         handleFormSubmit(this);
                     });
                 }
+                throw new Error('Validation failed');
             });
         }
     })
+    .then(data => {
+        if (data) {
+            closeModal();
+            showToast(data.message || 'Succesvol opgeslagen!', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+    })
     .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred. Please try again.');
+        if (error.message !== 'Validation failed') {
+            console.error('Error:', error);
+            showToast('Er is een fout opgetreden. Probeer opnieuw.', 'error', 5000);
+        }
     });
 }
 
@@ -1084,6 +1361,7 @@ function handleFormSubmit(form) {
 function handleMarkFixed(event, form) {
     event.preventDefault();
 
+    const issueId = form.getAttribute('data-issue-id');
     const formData = new FormData(form);
 
     fetch(form.action, {
@@ -1095,17 +1373,28 @@ function handleMarkFixed(event, form) {
     })
     .then(response => {
         if (response.ok) {
-            // Reload the page to show updated data
-            window.location.reload();
+            showToast('Probleem gemarkeerd als gefixt.', 'success');
+
+            // Update the status badge and remove the action button
+            const row = document.querySelector(`tr[data-issue-id="${issueId}"]`);
+            if (row) {
+                // Update status badge
+                const statusCell = row.children[3]; // 4th cell is status
+                statusCell.innerHTML = '<span class="badge badge-success">Gefixt</span>';
+
+                // Remove the action button
+                const actionsCell = row.children[5]; // 6th cell is actions
+                actionsCell.querySelector('.action-buttons').innerHTML = '';
+            }
         } else {
             return response.json().then(data => {
-                alert(data.message || 'An error occurred. Please try again.');
+                showToast(data.message || 'Er is een fout opgetreden. Probeer opnieuw.', 'error', 5000);
             });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred. Please try again.');
+        showToast('Er is een fout opgetreden. Probeer opnieuw.', 'error', 5000);
     });
 
     return false;
@@ -1211,7 +1500,75 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
+{{-- Confirmation Modal is provided by app-neu.blade.php layout --}}
+
 <style>
+/* Badge styles for booking statuses */
+.badge-info {
+    background: #3b82f6;
+    color: white;
+}
+
+.badge-primary {
+    background: #6366f1;
+    color: white;
+}
+
+/* Form error styles */
+.error-text {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.has-error {
+    border-color: #ef4444 !important;
+}
+
+/* Danger button style */
+.neu-button-danger {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.neu-button-danger:hover {
+    background: #dc2626;
+}
+
+.neu-button-danger:active {
+    background: #b91c1c;
+}
+
+/* Compact confirmation modal styles */
+.confirm-modal-compact {
+    max-width: 450px;
+}
+
+.confirm-modal-header {
+    padding: 1rem 1.5rem;
+}
+
+.confirm-modal-body {
+    padding: 1rem 1.5rem;
+}
+
+.confirm-modal-footer {
+    padding: 1rem 1.5rem;
+    gap: 0.75rem;
+}
+
+/* Dark mode compatible close button hover */
+.confirm-modal-close:hover {
+    opacity: 0.7;
+    background: transparent !important;
+}
+
 .action-btn.delete-btn {
     color: #ef4444;
 }
@@ -1286,6 +1643,8 @@ function showToast(message, type = 'success', duration = 3000) {
         }, 300);
     }, duration);
 }
+
+// Confirmation Modal System is provided by app-neu.blade.php layout
 </script>
 
 @endsection

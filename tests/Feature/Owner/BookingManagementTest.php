@@ -2,14 +2,11 @@
 
 namespace Tests\Feature\Owner;
 
-use App\Models\User;
-use App\Models\Hotel;
-use App\Models\Room;
 use App\Models\Booking;
 use App\Models\Cleaner;
-use App\Models\DayCapacity;
-use App\Models\CleaningTask;
-use App\Events\BookingCreated;
+use App\Models\Hotel;
+use App\Models\Room;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
@@ -19,7 +16,9 @@ class BookingManagementTest extends TestCase
     use RefreshDatabase;
 
     protected $owner;
+
     protected $hotel;
+
     protected $room;
 
     protected function setUp(): void
@@ -60,13 +59,18 @@ class BookingManagementTest extends TestCase
     /** @test */
     public function booking_creation_automatically_creates_cleaning_task()
     {
-        // Create cleaner and capacity
-        $cleaner = Cleaner::factory()->create(['hotel_id' => $this->hotel->id]);
-
-        DayCapacity::factory()->create([
+        // Create cleaner with workday schedule
+        $cleaner = Cleaner::factory()->create([
             'hotel_id' => $this->hotel->id,
-            'date' => today()->addDays(2),
-            'capacity' => 2,
+            'status' => 'active',
+            // Set cleaner to work all days
+            'works_monday' => true,
+            'works_tuesday' => true,
+            'works_wednesday' => true,
+            'works_thursday' => true,
+            'works_friday' => true,
+            'works_saturday' => true,
+            'works_sunday' => true,
         ]);
 
         $checkInDate = now()->addDays(2)->setTime(14, 0);

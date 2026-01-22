@@ -21,6 +21,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register model observers
+        \App\Models\Booking::observe(\App\Observers\BookingObserver::class);
+
         // Register event listeners
         Event::listen(
             \App\Events\BookingCreated::class,
@@ -30,6 +33,11 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(
             \App\Events\BookingUpdated::class,
             \App\Listeners\CreateCleaningTaskForBooking::class
+        );
+
+        Event::listen(
+            \App\Events\BlockingIssueCreated::class,
+            \App\Listeners\SendIssueNotification::class
         );
 
         // Define gates

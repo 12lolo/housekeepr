@@ -37,6 +37,9 @@
             </div>
         </aside>
 
+        <!-- Mobile sidebar backdrop -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
         <!-- Main Content Area -->
         <main class="neu-portal-main">
             <!-- Top Navbar (Global Header) -->
@@ -60,9 +63,26 @@
                         @endif
                     </button>
 
+                    <form method="POST" action="{{ route('profile.toggle-notifications') }}" style="display: inline;">
+                        @csrf
+                        <button type="submit" class="notification-badge" aria-label="Toggle Email Notifications" title="{{ auth()->user()->notifications_enabled ? 'E-mail notificaties uitschakelen' : 'E-mail notificaties inschakelen' }}">
+                            @if(auth()->user()->notifications_enabled)
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                                </svg>
+                            @else
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A2.014 2.014 0 0018 14V8.118l-8 4-1.473-.736-4.93-4.93C3.403 6.289 3.206 6.148 3 6.035V14a2 2 0 01-1 1.732l1.293 1.293 1.414-1.414L3.707 2.293z" clip-rule="evenodd"/>
+                                    <path d="M3 5.884V14a2 2 0 002 2h6.586L3 7.414V5.884zM12.414 4L4 12.414V4h8.414z"/>
+                                </svg>
+                            @endif
+                        </button>
+                    </form>
+
                     <form method="POST" action="{{ route('logout') }}" style="display: inline;" id="logoutForm">
                         @csrf
-                        <button type="button" class="notification-badge" aria-label="Logout" onclick="confirmLogout()">
+                        <button type="button" class="notification-badge" aria-label="Logout" id="logoutButton">
                             <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
                             </svg>
@@ -229,10 +249,102 @@
         </div>
     </div>
 
+    {{-- Confirmation Modal --}}
+    <div class="neu-modal-overlay" id="confirmModal" style="z-index: 10001;">
+        <div class="neu-modal confirm-modal-compact">
+            <div class="neu-modal-header confirm-modal-header">
+                <h3 id="confirmTitle">Bevestiging</h3>
+                <button class="neu-modal-close confirm-modal-close" type="button" onclick="closeConfirmModal()">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="neu-modal-body confirm-modal-body">
+                <div style="display: flex; gap: 0.75rem; align-items: start;">
+                    <div style="color: #f59e0b; flex-shrink: 0;">
+                        <svg width="32" height="32" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div style="flex: 1;">
+                        <p id="confirmMessage" style="margin: 0; line-height: 1.5; font-size: 0.9375rem; color: var(--neu-text-primary);"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="neu-modal-footer confirm-modal-footer">
+                <button type="button" class="neu-button-secondary" onclick="closeConfirmModal()">Annuleren</button>
+                <button type="button" class="neu-button-danger" id="confirmButton" onclick="confirmAction()">Bevestigen</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    /* Danger button style */
+    .neu-button-danger {
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 0.625rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .neu-button-danger:hover {
+        background: #dc2626;
+    }
+
+    .neu-button-danger:active {
+        background: #b91c1c;
+    }
+
+    /* Compact confirmation modal styles */
+    .confirm-modal-compact {
+        max-width: 450px;
+    }
+
+    .confirm-modal-header {
+        padding: 1rem 1.5rem;
+    }
+
+    .confirm-modal-body {
+        padding: 1rem 1.5rem;
+    }
+
+    .confirm-modal-footer {
+        padding: 1rem 1.5rem;
+        gap: 0.75rem;
+    }
+
+    /* Dark mode compatible close button hover */
+    .confirm-modal-close:hover {
+        opacity: 0.7;
+        background: transparent !important;
+    }
+    </style>
+
     <script>
         // Mobile menu toggle
-        document.getElementById('menuToggle')?.addEventListener('click', function() {
-            document.getElementById('sidebar')?.classList.toggle('open');
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+
+            function toggleSidebar() {
+                sidebar.classList.toggle('open');
+                backdrop.classList.toggle('active');
+            }
+
+            if (menuToggle && sidebar && backdrop) {
+                menuToggle.addEventListener('click', toggleSidebar);
+                backdrop.addEventListener('click', toggleSidebar);
+            } else {
+                console.error('Menu elements not found', { menuToggle, sidebar, backdrop });
+            }
         });
 
         // Close alerts
@@ -241,13 +353,6 @@
                 this.closest('.neu-alert')?.remove();
             });
         });
-
-        // Logout confirmation
-        function confirmLogout() {
-            if (confirm('Weet je zeker dat je wilt uitloggen?')) {
-                document.getElementById('logoutForm').submit();
-            }
-        }
 
         // Profile Panel Modal
         const profileModal = document.getElementById('profileModal');
@@ -319,6 +424,73 @@
                 changeNameModal.classList.remove('active');
             }
         });
+
+        // Confirmation Modal System
+        let confirmCallback = null;
+
+        function showConfirmModal(title, message, buttonText = 'Bevestigen', callback) {
+            const modal = document.getElementById('confirmModal');
+            const titleEl = document.getElementById('confirmTitle');
+            const messageEl = document.getElementById('confirmMessage');
+            const buttonEl = document.getElementById('confirmButton');
+
+            if (!modal || !titleEl || !messageEl || !buttonEl) {
+                console.error('Modal elements not found!');
+                return;
+            }
+
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            buttonEl.textContent = buttonText;
+            confirmCallback = callback;
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            confirmCallback = null;
+        }
+
+        function confirmAction() {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            closeConfirmModal();
+        }
+
+        // Close modal on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const confirmModal = document.getElementById('confirmModal');
+                if (confirmModal?.classList.contains('active')) {
+                    closeConfirmModal();
+                }
+            }
+        });
+
+        // Close modal on overlay click
+        document.getElementById('confirmModal')?.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeConfirmModal();
+            }
+        });
+
+        // Logout confirmation - attach event listener
+        const logoutButton = document.getElementById('logoutButton');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', function() {
+                showConfirmModal(
+                    'Uitloggen',
+                    'Weet je zeker dat je wilt uitloggen?',
+                    'Uitloggen',
+                    () => document.getElementById('logoutForm').submit()
+                );
+            });
+        }
     </script>
 
     @stack('scripts')

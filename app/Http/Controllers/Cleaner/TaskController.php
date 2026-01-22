@@ -38,6 +38,63 @@ class TaskController extends Controller
     }
 
     /**
+     * Show NFC room clock-in page.
+     */
+    public function showRoomClockIn(string $room_number)
+    {
+        $user = auth()->user();
+        $cleaner = $user->cleaner;
+
+        if (! $cleaner) {
+            abort(403, 'No cleaner profile found');
+        }
+
+        // Find the cleaner's task for this room today
+        $task = CleaningTask::where('cleaner_id', $cleaner->id)
+            ->whereDate('date', today())
+            ->whereHas('room', function ($query) use ($room_number, $cleaner) {
+                $query->where('room_number', $room_number)
+                    ->where('hotel_id', $cleaner->hotel_id);
+            })
+            ->with(['room', 'booking'])
+            ->first();
+
+        // No task found for this room
+        if (! $task) {
+            return view('cleaner.room-clock-in', [
+                'error' => 'no_task',
+                'room_number' => $room_number,
+                'task' => null,
+            ]);
+        }
+
+        // Task already completed
+        if ($task->status === 'completed') {
+            return view('cleaner.room-clock-in', [
+                'error' => 'already_completed',
+                'room_number' => $room_number,
+                'task' => $task,
+            ]);
+        }
+
+        // Task already in progress
+        if ($task->status === 'in_progress') {
+            return view('cleaner.room-clock-in', [
+                'error' => 'already_started',
+                'room_number' => $room_number,
+                'task' => $task,
+            ]);
+        }
+
+        // Show confirmation page for pending task
+        return view('cleaner.room-clock-in', [
+            'error' => null,
+            'room_number' => $room_number,
+            'task' => $task,
+        ]);
+    }
+
+    /**
      * Display task details.
      */
     public function show(CleaningTask $task)

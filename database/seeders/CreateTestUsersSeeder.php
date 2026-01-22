@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Booking;
 use App\Models\Cleaner;
-use App\Models\DayCapacity;
 use App\Models\Hotel;
 use App\Models\Room;
 use App\Models\User;
@@ -134,10 +133,10 @@ class CreateTestUsersSeeder extends Seeder
         // ROOMS FOR HOTEL 3 (Senne's Hotel)
         // ==========================================
         $hotel3Rooms = [
-            ['room_number' => 'A1', 'room_type' => 'Standard', 'standard_duration' => 60],
-            ['room_number' => 'A2', 'room_type' => 'Deluxe', 'standard_duration' => 90],
-            ['room_number' => 'B1', 'room_type' => 'Deluxe', 'standard_duration' => 90],
-            ['room_number' => 'B2', 'room_type' => 'Suite', 'standard_duration' => 120],
+            ['room_number' => 'A1', 'room_type' => 'Standard', 'standard_duration' => 60, 'checkout_time' => '10:00', 'checkin_time' => '14:00'],
+            ['room_number' => 'A2', 'room_type' => 'Deluxe', 'standard_duration' => 90, 'checkout_time' => '11:00', 'checkin_time' => '15:00'],
+            ['room_number' => 'B1', 'room_type' => 'Deluxe', 'standard_duration' => 90, 'checkout_time' => '12:00', 'checkin_time' => '16:00'],
+            ['room_number' => 'B2', 'room_type' => 'Suite', 'standard_duration' => 120, 'checkout_time' => '11:30', 'checkin_time' => '15:30'],
         ];
 
         $hotel3RoomModels = [];
@@ -326,27 +325,6 @@ class CreateTestUsersSeeder extends Seeder
         $this->command->info('✅ Cleaners created (4 for Hotel 1, 1 for Hotel 2, 2 for Hotel 3)');
 
         // ==========================================
-        // CAPACITY SETTINGS (30 days)
-        // ==========================================
-        for ($i = -7; $i < 30; $i++) {
-            $date = now()->addDays($i)->toDateString();
-            DayCapacity::firstOrCreate(
-                ['hotel_id' => $hotel1->id, 'date' => $date],
-                ['capacity' => 3]
-            );
-            DayCapacity::firstOrCreate(
-                ['hotel_id' => $hotel2->id, 'date' => $date],
-                ['capacity' => 1]
-            );
-            DayCapacity::firstOrCreate(
-                ['hotel_id' => $hotel3->id, 'date' => $date],
-                ['capacity' => 2]
-            );
-        }
-
-        $this->command->info('✅ Daily capacity set for 30 days (all hotels)');
-
-        // ==========================================
         // BOOKINGS FOR HOTEL 1
         // ==========================================
 
@@ -380,22 +358,9 @@ class CreateTestUsersSeeder extends Seeder
         // ==========================================
         // BOOKINGS FOR HOTEL 3 (Senne's Hotel)
         // ==========================================
-        // Past booking (completed)
-        $this->createBooking($hotel3RoomModels[0], now()->subDays(4), now()->subDays(2), 'John Doe', 'completed');
+        // No bookings seeded for Hotel 3 (production hotel)
 
-        // Current stay (checked in)
-        $this->createBooking($hotel3RoomModels[1], now()->subDay(), now()->addDays(2), 'Jane Smith', 'checked_in');
-
-        // Checking out today
-        $this->createBooking($hotel3RoomModels[2], now()->subDays(2), now(), 'Robert Johnson', 'checked_in');
-
-        // Upcoming bookings
-        $this->createBooking($hotel3RoomModels[0], now()->addDay(), now()->addDays(3), 'Sarah Williams', 'confirmed');
-        $this->createBooking($hotel3RoomModels[3], now()->addDays(2), now()->addDays(5), 'Michael Brown', 'confirmed');
-        $this->createBooking($hotel3RoomModels[1], now()->addDays(4), now()->addDays(6), 'Emily Davis', 'confirmed');
-        $this->createBooking($hotel3RoomModels[2], now()->addDays(3), now()->addDays(7), 'David Wilson', 'confirmed');
-
-        $this->command->info('✅ Bookings created (10 for Hotel 1, 3 for Hotel 2, 7 for Hotel 3)');
+        $this->command->info('✅ Bookings created (10 for Hotel 1, 3 for Hotel 2, 0 for Hotel 3)');
 
         // ==========================================
         // SUMMARY
@@ -409,7 +374,7 @@ class CreateTestUsersSeeder extends Seeder
         $this->command->info('  • Hotels: 3');
         $this->command->info('  • Rooms: 17');
         $this->command->info('  • Cleaners: 7 (1 pending)');
-        $this->command->info('  • Bookings: 20');
+        $this->command->info('  • Bookings: 13 (Hotel 3 has no test bookings)');
         $this->command->info('');
         $this->command->info('🔑 Login credentials:');
         $this->command->info('  • Most users: password');

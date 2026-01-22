@@ -14,6 +14,8 @@ class RoomFactory extends Factory
             'room_number' => fake()->unique()->numerify('###'),
             'room_type' => fake()->randomElement(['Standard', 'Deluxe', 'Suite']),
             'standard_duration' => fake()->randomElement([30, 45, 60, 90]),
+            'checkout_time' => fake()->randomElement(['10:00', '11:00', '12:00']),
+            'checkin_time' => fake()->randomElement(['14:00', '15:00', '16:00']),
         ];
     }
 }

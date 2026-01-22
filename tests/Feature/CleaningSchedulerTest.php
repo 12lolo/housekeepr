@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Booking;
 use App\Models\Cleaner;
 use App\Models\CleaningTask;
-use App\Models\DayCapacity;
 use App\Models\Hotel;
 use App\Models\Room;
 use App\Models\User;
@@ -36,6 +35,7 @@ class CleaningSchedulerTest extends TestCase
             'room_number' => '101',
             'room_type' => 'Standard',
             'standard_duration' => 60,
+            'checkout_time' => '11:00',
         ]);
 
         $cleanerUser = User::factory()->create([
@@ -47,13 +47,14 @@ class CleaningSchedulerTest extends TestCase
             'user_id' => $cleanerUser->id,
             'hotel_id' => $this->hotel->id,
             'status' => 'active',
-        ]);
-
-        // Set capacity for tomorrow
-        DayCapacity::create([
-            'hotel_id' => $this->hotel->id,
-            'date' => now()->addDay()->toDateString(),
-            'capacity' => 2,
+            // Set cleaner to work all days
+            'works_monday' => true,
+            'works_tuesday' => true,
+            'works_wednesday' => true,
+            'works_thursday' => true,
+            'works_friday' => true,
+            'works_saturday' => true,
+            'works_sunday' => true,
         ]);
     }
 
@@ -93,8 +94,9 @@ class CleaningSchedulerTest extends TestCase
         $expectedDuration = $this->room->standard_duration + 10; // 70 minutes
         $this->assertEquals($expectedDuration, $task->planned_duration);
 
-        $expectedStartTime = $checkInDate->copy()->subMinutes($expectedDuration);
-        $this->assertEquals($expectedStartTime->format('H:i'), $task->suggested_start_time->format('H:i'));
+        // New algorithm: suggested start is at checkout time (11:00)
+        $checkoutDateTime = $checkInDate->copy()->setTimeFromTimeString($this->room->checkout_time);
+        $this->assertEquals($checkoutDateTime->format('H:i'), $task->suggested_start_time->format('H:i'));
 
         $this->assertEquals('pending', $task->status);
     }
@@ -112,6 +114,14 @@ class CleaningSchedulerTest extends TestCase
             'user_id' => $cleanerUser2->id,
             'hotel_id' => $this->hotel->id,
             'status' => 'active',
+            // Set cleaner to work all days
+            'works_monday' => true,
+            'works_tuesday' => true,
+            'works_wednesday' => true,
+            'works_thursday' => true,
+            'works_friday' => true,
+            'works_saturday' => true,
+            'works_sunday' => true,
         ]);
 
         $checkInDate = now()->addDay()->setTime(15, 0);

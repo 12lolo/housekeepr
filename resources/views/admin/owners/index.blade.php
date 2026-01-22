@@ -83,28 +83,28 @@
                                         </svg>
                                     </a>
                                     @if($owner->status === 'active')
-                                        <form action="{{ route('admin.owners.deactivate', $owner) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('admin.owners.deactivate', $owner) }}" method="POST" class="d-inline" data-owner-form="deactivate">
                                             @csrf
-                                            <button type="submit" class="action-btn" style="color: #f59e0b;" aria-label="Deactiveren" onclick="return confirm('Weet je zeker dat je deze eigenaar wilt deactiveren? De eigenaar kan nog inloggen en navigeren, maar kan geen wijzigingen maken.')">
+                                            <button type="button" class="action-btn" style="color: #f59e0b;" aria-label="Deactiveren" onclick="confirmDeactivateOwner(event, '{{ $owner->name ?? $owner->email }}')">
                                                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
                                                 </svg>
                                             </button>
                                         </form>
                                     @else
-                                        <form action="{{ route('admin.owners.activate', $owner) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('admin.owners.activate', $owner) }}" method="POST" class="d-inline" data-owner-form="activate">
                                             @csrf
-                                            <button type="submit" class="action-btn" style="color: #10b981;" aria-label="Activeren" onclick="return confirm('Weet je zeker dat je deze eigenaar wilt activeren?')">
+                                            <button type="button" class="action-btn" style="color: #10b981;" aria-label="Activeren" onclick="confirmActivateOwner(event, '{{ $owner->name ?? $owner->email }}')">
                                                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                                 </svg>
                                             </button>
                                         </form>
                                     @endif
-                                    <form action="{{ route('admin.owners.destroy', $owner) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('admin.owners.destroy', $owner) }}" method="POST" class="d-inline" data-owner-form="delete">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="action-btn danger" aria-label="Verwijderen" onclick="return confirm('Weet je zeker dat je deze eigenaar definitief wilt verwijderen? Dit kan niet ongedaan worden gemaakt!')">
+                                        <button type="button" class="action-btn danger" aria-label="Verwijderen" onclick="confirmDeleteOwner(event, '{{ $owner->name ?? $owner->email }}')">
                                             <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
                                             </svg>

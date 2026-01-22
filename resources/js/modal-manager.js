@@ -71,7 +71,7 @@ window.editRoom = function(roomId, roomNumber, type, standardDuration, checkoutT
 };
 
 // Edit booking - populate form with data
-window.editBooking = function(bookingId, roomId, guestName, checkIn, checkOut, notes) {
+window.editBooking = function(bookingId, roomId, guestName, checkIn, checkOut) {
     const form = document.getElementById('bookingEditForm');
     form.action = `/owner/bookings/${bookingId}`;
 
@@ -79,7 +79,6 @@ window.editBooking = function(bookingId, roomId, guestName, checkIn, checkOut, n
     document.getElementById('edit_guest_name').value = guestName;
     document.getElementById('edit_check_in').value = checkIn;
     document.getElementById('edit_check_out').value = checkOut;
-    document.getElementById('edit_notes').value = notes || '';
 
     window.openModal('bookingEditModal');
 };

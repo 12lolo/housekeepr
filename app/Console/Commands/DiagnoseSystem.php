@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Models\Booking;
 use App\Models\Cleaner;
 use App\Models\CleaningTask;
-use App\Models\DayCapacity;
 use App\Models\Hotel;
 use Illuminate\Console\Command;
 
@@ -92,23 +91,6 @@ class DiagnoseSystem extends Command
             $this->info("    - Hotel: #{$cleaner->hotel_id}");
             $this->info("    - Status: {$cleaner->status}");
             $this->info('    - Works: '.implode(', ', $days));
-        }
-        $this->newLine();
-
-        // Day Capacity
-        $this->info('--- DAY CAPACITY ---');
-        $capacityQuery = DayCapacity::query();
-        if ($hotelId) {
-            $capacityQuery->where('hotel_id', $hotelId);
-        }
-        $capacities = $capacityQuery->where('date', '>=', now()->toDateString())
-            ->orderBy('date')
-            ->take(7)
-            ->get();
-
-        $this->info("Capacity records (next 7 days): {$capacities->count()}");
-        foreach ($capacities as $capacity) {
-            $this->info("  {$capacity->date} - Hotel #{$capacity->hotel_id}: {$capacity->capacity} cleaners");
         }
         $this->newLine();
 
