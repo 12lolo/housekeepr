@@ -95,7 +95,7 @@ class DashboardController extends Controller
             $query->where('description', 'like', '%' . $request->search . '%');
         }
 
-        $auditLogs = $query->take(50)->get();
+        $auditLogs = $query->paginate(50);
 
         return response()->json([
             'success' => true,
@@ -108,6 +108,14 @@ class DashboardController extends Controller
                     'created_at' => $log->created_at->format('d-m-Y H:i'),
                 ];
             }),
+            'pagination' => [
+                'current_page' => $auditLogs->currentPage(),
+                'last_page' => $auditLogs->lastPage(),
+                'per_page' => $auditLogs->perPage(),
+                'total' => $auditLogs->total(),
+                'from' => $auditLogs->firstItem(),
+                'to' => $auditLogs->lastItem(),
+            ],
         ]);
     }
 }

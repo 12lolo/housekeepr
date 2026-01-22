@@ -351,12 +351,8 @@
                     </table>
                 </div>
 
-                {{-- Pagination --}}
-                @if($auditLogs->hasPages())
-                    <div class="mt-6">
-                        {{ $auditLogs->withQueryString()->links() }}
-                    </div>
-                @endif
+                {{-- Pagination (AJAX) --}}
+                <div id="auditLogPagination" class="mt-6" style="display: none;"></div>
             </div>
         </div>
     </div>
@@ -718,6 +714,24 @@ document.addEventListener('DOMContentLoaded', function() {
         checkFiltersActive();
     });
 
+    // Change audit log page
+    window.changeAuditLogPage = function(page) {
+        const form = document.getElementById('auditLogFilterForm');
+        const pageInput = form.querySelector('input[name="page"]');
+
+        if (pageInput) {
+            pageInput.value = page;
+        } else {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'page';
+            input.value = page;
+            form.appendChild(input);
+        }
+
+        refreshAuditLog();
+    };
+
     // Refresh audit log with cooldown to prevent excessive requests
     let auditLogCooldown = false;
     let auditLogPendingRefresh = false;
@@ -790,11 +804,99 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     tbody.appendChild(row);
                 });
+
+                // Render pagination
+                const paginationDiv = document.getElementById('auditLogPagination');
+                if (data.pagination && data.pagination.last_page > 1) {
+                    paginationDiv.style.display = 'block';
+                    paginationDiv.innerHTML = renderPagination(data.pagination);
+                } else {
+                    paginationDiv.style.display = 'none';
+                }
             }
         })
         .catch(error => {
             console.error('Error refreshing audit log:', error);
         });
+    };
+
+    // Render pagination HTML
+    window.renderPagination = function(pagination) {
+        const currentPage = pagination.current_page;
+        const lastPage = pagination.last_page;
+        const from = pagination.from;
+        const to = pagination.to;
+        const total = pagination.total;
+
+        let html = '<nav role="navigation" aria-label="Pagination Navigation" class="flex items-center justify-between">';
+
+        // Results info
+        html += '<div class="flex justify-between flex-1 sm:hidden">';
+        if (currentPage > 1) {
+            html += `<button onclick="changeAuditLogPage(${currentPage - 1})" class="neu-button-secondary">Vorige</button>`;
+        } else {
+            html += '<span></span>';
+        }
+        if (currentPage < lastPage) {
+            html += `<button onclick="changeAuditLogPage(${currentPage + 1})" class="neu-button-secondary">Volgende</button>`;
+        }
+        html += '</div>';
+
+        // Desktop pagination
+        html += '<div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">';
+        html += `<div><p class="text-sm text-gray-700 dark:text-gray-300">Resultaten <span class="font-medium">${from}</span> tot <span class="font-medium">${to}</span> van <span class="font-medium">${total}</span></p></div>`;
+        html += '<div><span class="relative z-0 inline-flex shadow-sm rounded-md">';
+
+        // Previous button
+        if (currentPage > 1) {
+            html += `<button onclick="changeAuditLogPage(${currentPage - 1})" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+            </button>`;
+        } else {
+            html += `<span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-300 dark:text-gray-600 cursor-not-allowed">
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+            </span>`;
+        }
+
+        // Page numbers
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(lastPage, currentPage + 2);
+
+        if (startPage > 1) {
+            html += `<button onclick="changeAuditLogPage(1)" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">1</button>`;
+            if (startPage > 2) {
+                html += `<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300">...</span>`;
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            if (i === currentPage) {
+                html += `<span class="relative inline-flex items-center px-4 py-2 border border-blue-500 bg-blue-50 dark:bg-blue-900 text-sm font-medium text-blue-600 dark:text-blue-200">${i}</span>`;
+            } else {
+                html += `<button onclick="changeAuditLogPage(${i})" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">${i}</button>`;
+            }
+        }
+
+        if (endPage < lastPage) {
+            if (endPage < lastPage - 1) {
+                html += `<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300">...</span>`;
+            }
+            html += `<button onclick="changeAuditLogPage(${lastPage})" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">${lastPage}</button>`;
+        }
+
+        // Next button
+        if (currentPage < lastPage) {
+            html += `<button onclick="changeAuditLogPage(${currentPage + 1})" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+            </button>`;
+        } else {
+            html += `<span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-300 dark:text-gray-600 cursor-not-allowed">
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+            </span>`;
+        }
+
+        html += '</span></div></div></nav>';
+        return html;
     };
 
     // Toast notification system
