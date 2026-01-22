@@ -242,7 +242,7 @@
                 <h2 class="card-title">Audit Log - Alle Activiteiten</h2>
 
                 {{-- Audit Log Filters --}}
-                <form method="GET" action="{{ route('admin.dashboard') }}" class="audit-log-filters" style="margin-bottom: 2rem;">
+                <form method="GET" action="{{ route('admin.dashboard') }}" id="auditLogFilterForm" class="audit-log-filters" style="margin-bottom: 2rem;" onsubmit="filterAuditLog(event)">
                     <div class="filter-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
                         <div class="neu-form-group">
                             <label for="user_id" class="neu-label">Gebruiker</label>
@@ -308,11 +308,9 @@
                             </svg>
                             Filteren
                         </button>
-                        @if(request()->hasAny(['user_id', 'event', 'from_date', 'to_date', 'search']))
-                            <a href="{{ route('admin.dashboard') }}" class="neu-button-secondary">
-                                Filters Wissen
-                            </a>
-                        @endif
+                        <button type="button" class="neu-button-secondary" onclick="clearAuditLogFilters()">
+                            Filters Wissen
+                        </button>
                     </div>
                 </form>
 
@@ -681,6 +679,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Modal event listeners (ESC and overlay click) are provided by app-neu.blade.php layout
 
+    // Filter audit log (form submission)
+    window.filterAuditLog = function(event) {
+        event.preventDefault();
+        refreshAuditLog();
+    };
+
+    // Clear audit log filters
+    window.clearAuditLogFilters = function() {
+        const form = document.getElementById('auditLogFilterForm');
+        form.reset();
+        refreshAuditLog();
+    };
+
     // Refresh audit log with cooldown to prevent excessive requests
     let auditLogCooldown = false;
     let auditLogPendingRefresh = false;
@@ -706,7 +717,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 3000);
 
-        fetch('/admin/audit-logs', {
+        // Get filter values from form
+        const form = document.getElementById('auditLogFilterForm');
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData);
+
+        fetch('/admin/audit-logs?' + params.toString(), {
             method: 'GET',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
