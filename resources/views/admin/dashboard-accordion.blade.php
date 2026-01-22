@@ -478,7 +478,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.confirmDeactivateOwner = function(event, ownerName) {
         event.preventDefault();
         const form = event.target.closest('form');
-        const ownerId = form.action.split('/').pop();
+        const parts = form.action.split('/');
+        const ownerId = parts[parts.length - 2]; // Get ID from second-to-last position
         showConfirmModal(
             'Eigenaar deactiveren',
             `Weet je zeker dat je ${ownerName} wilt deactiveren? De eigenaar kan nog inloggen en navigeren, maar kan geen wijzigingen maken.`,
@@ -545,7 +546,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.confirmActivateOwner = function(event, ownerName) {
         event.preventDefault();
         const form = event.target.closest('form');
-        const ownerId = form.action.split('/').pop();
+        const parts = form.action.split('/');
+        const ownerId = parts[parts.length - 2]; // Get ID from second-to-last position
         showConfirmModal(
             'Eigenaar activeren',
             `Weet je zeker dat je ${ownerName} wilt activeren?`,
