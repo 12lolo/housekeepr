@@ -57,18 +57,65 @@ class DashboardController extends Controller
 
         // Fetch additional data for accordion sections
         $rooms = $hotel->rooms()->withCount('bookings')->latest()->get();
-        $bookings = $hotel->rooms()->with('bookings.room')->get()->pluck('bookings')->flatten()->sortByDesc('check_in');
         $cleaners = $hotel->cleaners()->with(['user'])->get();
-        $issues = Issue::with('room')->whereHas('room', function ($q) use ($hotel) {
-            $q->where('hotel_id', $hotel->id);
-        })->latest()->get();
 
-        // Fetch cleaning schedule (upcoming and pending tasks)
-        $cleaning_schedule = CleaningTask::with(['room', 'cleaner.user', 'booking'])
+        // Get all bookings for the hotel
+        $allBookings = $hotel->rooms()->with('bookings.room')->get()->pluck('bookings')->flatten();
+
+        // Delete past bookings (check_out before today)
+        $allBookings->filter(fn ($booking) => $booking->check_out->lt(today()))->each->delete();
+
+        // Refresh bookings after deletion and split into actief/today/upcoming
+        $allBookings = $hotel->rooms()->with('bookings.room')->get()->pluck('bookings')->flatten();
+
+        // Actief: checked in before today, still staying (check_out > today, not today)
+        $activeBookings = $allBookings->filter(fn ($booking) => $booking->check_in->lt(today()) && $booking->check_out->gt(today()))->sortBy('check_in');
+
+        // Vandaag: check-in or check-out is today
+        $todayBookings = $allBookings->filter(fn ($booking) => $booking->check_in->isToday() || $booking->check_out->isToday())->sortBy('check_in');
+
+        // Aankomend: check-in is in the future (after today)
+        $upcomingBookings = $allBookings->filter(fn ($booking) => $booking->check_in->gt(today()))->sortBy('check_in');
+        // Delete past issues (before today)
+        Issue::whereHas('room', function ($q) use ($hotel) {
+            $q->where('hotel_id', $hotel->id);
+        })->whereDate('created_at', '<', today())->where('status', 'gefixt')->delete();
+
+        // Get today's issues
+        $todayIssues = Issue::with('room')->whereHas('room', function ($q) use ($hotel) {
+            $q->where('hotel_id', $hotel->id);
+        })->whereDate('created_at', today())->latest()->get();
+
+        // Get upcoming issues (future)
+        $upcomingIssues = Issue::with('room')->whereHas('room', function ($q) use ($hotel) {
+            $q->where('hotel_id', $hotel->id);
+        })->whereDate('created_at', '>', today())->latest()->get();
+
+        // Keep open issues from the past (not fixed yet)
+        $openPastIssues = Issue::with('room')->whereHas('room', function ($q) use ($hotel) {
+            $q->where('hotel_id', $hotel->id);
+        })->whereDate('created_at', '<', today())->where('status', 'open')->latest()->get();
+
+        // Delete past cleaning tasks (before today)
+        CleaningTask::whereHas('room', function ($q) use ($hotel) {
+            $q->where('hotel_id', $hotel->id);
+        })->whereDate('date', '<', today())->delete();
+
+        // Get today's cleaning schedule
+        $todayCleaningSchedule = CleaningTask::with(['room', 'cleaner.user', 'booking'])
             ->whereHas('room', function ($q) use ($hotel) {
                 $q->where('hotel_id', $hotel->id);
             })
-            ->where('date', '>=', today())
+            ->whereDate('date', today())
+            ->orderBy('suggested_start_time')
+            ->get();
+
+        // Get upcoming cleaning schedule
+        $upcomingCleaningSchedule = CleaningTask::with(['room', 'cleaner.user', 'booking'])
+            ->whereHas('room', function ($q) use ($hotel) {
+                $q->where('hotel_id', $hotel->id);
+            })
+            ->whereDate('date', '>', today())
             ->orderBy('date')
             ->orderBy('suggested_start_time')
             ->get();
@@ -124,10 +171,15 @@ class DashboardController extends Controller
             'urgent_issues',
             'hotel',
             'rooms',
-            'bookings',
+            'activeBookings',
+            'todayBookings',
+            'upcomingBookings',
             'cleaners',
-            'issues',
-            'cleaning_schedule',
+            'todayIssues',
+            'upcomingIssues',
+            'openPastIssues',
+            'todayCleaningSchedule',
+            'upcomingCleaningSchedule',
             'cleanerPerformance',
             'isNewHotel'
         ));
